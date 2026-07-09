@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package orchestrack.docker;
+
+option go_package = "github.com/go/orchestrack/backend/proto/docker;docker";
+
+// Gestor de paquetes detectado en el host.
+enum PackageManager {
+  PACKAGE_MANAGER_UNSPECIFIED = 0;
+  PACKAGE_MANAGER_APT = 1;   // Debian/Ubuntu
+  PACKAGE_MANAGER_DNF = 2;   // Fedora/RHEL 8+
+  PACKAGE_MANAGER_YUM = 3;   // RHEL/CentOS legacy
+  PACKAGE_MANAGER_PACMAN = 4; // Arch/Manjaro
+  PACKAGE_MANAGER_APK = 5;    // Alpine
+  PACKAGE_MANAGER_BREW = 6;   // macOS
+  PACKAGE_MANAGER_CHOCO = 7;  // Windows
+  PACKAGE_MANAGER_WINGET = 8; // Windows
+}
+
+// Información básica del sistema operativo.
+message SystemInfo {
+  string os = 1;                 // linux, darwin, windows
+  string os_version = 2;         // Versión del SO (ej. 22.04, 13.5)
+  string architecture = 3;       // amd64, arm64, etc.
+  PackageManager package_manager = 4;
+  string package_manager_version = 5;
+}
+
+// Representación de un paquete del sistema.
+message SystemPackage {
+  string name = 1;
+  string version = 2;
+  string architecture = 3;
+  string source = 4;             // repositorio/origin (opcional)
+  string status = 5;             // installed, upgradable, etc.
+  int64 installed_size = 6;      // Tamaño instalado en bytes (0 si no aplica)
+  string summary = 7;            // Descripción corta (opcional)
+}
+
+// ---------- ListPackages ----------
+
+message ListPackagesRequest {
+  // Filtro de búsqueda opcional por nombre.
+  string query = 1;
+  // Si es true, incluye paquetes que tienen actualización disponible.
+  bool upgradable_only = 2;
+}
+
+message ListPackagesResponse {
+  repeated SystemPackage packages = 1;
+  int32 total = 2;
+}
+
+// ---------- RefreshPackages ----------
+
+message RefreshPackagesRequest {
+  // Si es true, no ejecuta cambios, solo simula.
+  bool dry_run = 1;
+}
+
+message RefreshPackagesResponse {
+  bool success = 1;
+  string output = 2;
+  // Paquetes con actualización disponible detectada tras refrescar.
+  repeated SystemPackage upgradable_packages = 3;
+  int32 upgradable_count = 4;
+}
+
+// ---------- UpgradePackages ----------
+
+message UpgradePackagesRequest {
+  // Si es true, no ejecuta cambios, solo simula.
+  bool dry_run = 1;
+  // Si es true, responde afirmativamente a las preguntas del gestor.
+  bool auto_confirm = 2;
+  // Lista de paquetes específicos; vacía = todos los disponibles.
+  repeated string packages = 3;
+}
+
+message UpgradePackagesResponse {
+  bool success = 1;
+  string output = 2;
+  int32 upgraded_count = 3;
+  int32 installed_count = 4;
+  int32 removed_count = 5;
+}
+
+// ---------- RemovePackages ----------
+
+message RemovePackagesRequest {
+  // Lista de paquetes a eliminar.
+  repeated string packages = 1;
+  // Si es true, elimina también los archivos de configuración (APT purge, etc.).
+  bool purge = 2;
+  // Si es true, responde afirmativamente a las preguntas del gestor.
+  bool auto_confirm = 3;
+  // Si es true, no ejecuta cambios, solo simula.
+  bool dry_run = 4;
+}
+
+message RemovePackagesResponse {
+  bool success = 1;
+  string output = 2;
+  int32 removed_count = 3;
+}
+
+// ---------- GetSystemInfo ----------
+
+message GetSystemInfoRequest {}
+
+message GetSystemInfoResponse {
+  SystemInfo info = 1;
+}

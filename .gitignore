@@ -1,0 +1,31 @@
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
+
+# Go
+backend/api-service/api-service
+backend/orchestrack-agent/orchestrack-agent
+backend/*/bin/
+vendor/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# OpenCode
+.opencode/

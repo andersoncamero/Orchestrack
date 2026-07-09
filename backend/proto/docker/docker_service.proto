@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package orchestrack.docker;
+
+option go_package = "github.com/go/orchestrack/backend/proto/docker;docker";
+
+// Métricas del host/servidor donde corre docker-service.
+message HostMetrics {
+  // Uso de CPU en porcentaje (0-100).
+  double cpu_percent = 1;
+
+  // Memoria total en bytes.
+  int64 memory_total = 2;
+
+  // Memoria usada en bytes.
+  int64 memory_used = 3;
+
+  // Porcentaje de memoria usada (0-100).
+  double memory_percent = 4;
+
+  // Espacio en disco total en bytes.
+  int64 disk_total = 5;
+
+  // Espacio en disco usado en bytes.
+  int64 disk_used = 6;
+
+  // Porcentaje de disco usado (0-100).
+  double disk_percent = 7;
+
+  // Carga promedio del sistema (1 min).
+  double load_average = 8;
+
+  // Tiempo de actividad del servidor en segundos.
+  int64 uptime_seconds = 9;
+
+  // Número de núcleos de CPU.
+  int32 cpu_cores = 10;
+
+  // Nombre de la plataforma/sistema operativo.
+  string platform = 11;
+
+  // Procesos principales del sistema ordenados por uso de CPU.
+  repeated ProcessInfo processes = 12;
+
+  // Número total de procesos en ejecución en el host.
+  int32 process_count = 13;
+}
+
+// Información de un proceso del sistema operativo.
+message ProcessInfo {
+  // PID del proceso.
+  int32 pid = 1;
+
+  // Nombre del ejecutable.
+  string name = 2;
+
+  // Porcentaje de uso de CPU (0-100).
+  double cpu_percent = 3;
+
+  // Porcentaje de uso de memoria (0-100).
+  double memory_percent = 4;
+
+  // Memoria usada por el proceso en bytes.
+  int64 memory_bytes = 5;
+}
+
+// Información de registro/heartbeat de una instancia de docker-service.
+message DockerServiceHeartbeat {
+  string service_id = 1;
+  string hostname = 2;
+  string status = 3; // online, offline
+  int64 timestamp = 4;
+
+  // Métricas del host asociado a esta instancia.
+  HostMetrics host_metrics = 5;
+}
+
+// Respuesta de un comando enviado por NATS request-reply.
+message CommandResponse {
+  bool success = 1;
+  string error_message = 2;
+  bytes payload = 3; // Mensaje protobuf serializado
+}
+
+// ---------- SearchProcesses ----------
+
+message SearchProcessesRequest {
+  // Filtro por nombre del proceso (case-insensitive, substring).
+  string query = 1;
+  // Si es true, busca también por PID exacto.
+  bool search_by_pid = 2;
+  // Número máximo de resultados (por defecto 20).
+  int32 limit = 3;
+}
+
+message SearchProcessesResponse {
+  repeated ProcessInfo processes = 1;
+  int32 total = 2;
+}

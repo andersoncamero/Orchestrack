@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand palette — Orchestrack Corporate / Portainer-inspired */
+  --color-primary: #12B2E7;
+  --color-primary-hover: #0E9AD0;
+  --color-primary-subtle: rgba(18, 178, 231, 0.12);
+  --color-primary-focus: rgba(18, 178, 231, 0.35);
+
+  --color-bg-base: #F5F6FA;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-surface-hover: #F9FAFB;
+  --color-bg-elevated: #FFFFFF;
+
+  --color-text-main: #1D2330;
+  --color-text-secondary: #4B5563;
+  --color-text-muted: #6B7280;
+
+  --color-border: #E5E7EB;
+  --color-border-strong: #D1D5DB;
+
+  --color-status-running: #10B981;
+  --color-status-running-subtle: rgba(16, 185, 129, 0.12);
+  --color-status-warning: #F59E0B;
+  --color-status-warning-subtle: rgba(245, 158, 11, 0.12);
+  --color-status-exited: #EF4444;
+  --color-status-exited-subtle: rgba(239, 68, 68, 0.12);
+  --color-status-info: #3B82F6;
+  --color-status-info-subtle: rgba(59, 130, 246, 0.12);
+  --color-status-neutral: #6B7280;
+  --color-status-neutral-subtle: rgba(107, 114, 128, 0.12);
+
+  /* Legacy glacier palette — kept for compatibility */
+  --color-glacier-50: #f2f8f9;
+  --color-glacier-100: #deedef;
+  --color-glacier-200: #c1dce0;
+  --color-glacier-300: #96c2ca;
+  --color-glacier-400: #77acb7;
+  --color-glacier-500: #488492;
+  --color-glacier-600: #3e6e7c;
+  --color-glacier-700: #385a66;
+  --color-glacier-800: #344d56;
+  --color-glacier-900: #2f424a;
+  --color-glacier-950: #1b2a31;
+}
+
+:root {
+  /* Semantic aliases used across components */
+  --bg: var(--color-bg-base);
+  --card: var(--color-bg-surface);
+  --card-hover: var(--color-bg-surface-hover);
+  --elevated: var(--color-bg-elevated);
+  --text-primary: var(--color-text-main);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --border: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --input-bg: var(--color-bg-surface);
+}
+
+.dark {
+  --color-bg-base: #0B1120;
+  --color-bg-surface: #111827;
+  --color-bg-surface-hover: #1F2937;
+  --color-bg-elevated: #1F2937;
+  --color-text-main: #F9FAFB;
+  --color-text-secondary: #D1D5DB;
+  --color-text-muted: #9CA3AF;
+  --color-border: #1F2937;
+  --color-border-strong: #374151;
+
+  --bg: var(--color-bg-base);
+  --card: var(--color-bg-surface);
+  --card-hover: var(--color-bg-surface-hover);
+  --elevated: var(--color-bg-elevated);
+  --text-primary: var(--color-text-main);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --border: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --input-bg: var(--color-bg-surface);
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-main);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 4px var(--color-primary), 0 0 8px var(--color-primary);
+  }
+  50% {
+    box-shadow: 0 0 8px var(--color-primary), 0 0 16px var(--color-primary);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

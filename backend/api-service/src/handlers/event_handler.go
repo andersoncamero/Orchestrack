@@ -1,0 +1,574 @@
+package handlers
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	"sync"
+	"time"
+
+	"github.com/go/orchestrack/backend/api-service/src/cache"
+	"github.com/go/orchestrack/backend/api-service/src/commander"
+	"github.com/go/orchestrack/backend/api-service/src/models"
+	"github.com/go/orchestrack/backend/api-service/src/repository"
+	"github.com/go/orchestrack/backend/api-service/src/websocket"
+	"github.com/go/orchestrack/backend/events"
+	"github.com/go/orchestrack/backend/proto/docker"
+	"google.golang.org/protobuf/proto"
+)
+
+var (
+	sincronizadosInicio sync.Map
+)
+
+// SubscribeContainerEvents se suscribe a eventos de contenedores y heartbeats.
+// Si se proporciona un Hub, los eventos se reenvían a los clientes WebSocket.
+func SubscribeContainerEvents(registry *cache.Registry, history *cache.ConnectionHistory, hub *websocket.Hub, logger *slog.Logger) error {
+	if err := subscribeHeartbeats(registry, history, hub, logger); err != nil {
+		return err
+	}
+
+	if err := subscribeContainerCreated(registry, hub, logger); err != nil {
+		return err
+	}
+	if err := subscribeContainerStarted(registry, hub, logger); err != nil {
+		return err
+	}
+	if err := subscribeContainerStopped(registry, hub, logger); err != nil {
+		return err
+	}
+	if err := subscribeContainerRestarted(registry, hub, logger); err != nil {
+		return err
+	}
+	if err := subscribeContainerRenamed(registry, hub, logger); err != nil {
+		return err
+	}
+	if err := subscribeContainerRemoved(registry, hub, logger); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func broadcastEvent(hub *websocket.Hub, room string, eventType string, payload interface{}) {
+	if hub == nil {
+		return
+	}
+	hub.Broadcast(room, map[string]interface{}{
+		"type":    eventType,
+		"payload": payload,
+	})
+
+	if room == "containers" {
+		if m, ok := payload.(map[string]interface{}); ok {
+			if serviceId, has := m["service_id"]; has {
+				if serviceIdStr, isStr := serviceId.(string); isStr && serviceIdStr != "" {
+					hub.Broadcast("containers:"+serviceIdStr, map[string]interface{}{
+						"type":    eventType,
+						"payload": payload,
+					})
+				}
+			}
+		}
+	}
+}
+
+// SincronizarContenedoresDevice consulta los contenedores actuales de un dispositivo vía NATS
+// y actualiza los contadores (total, running, stopped) directamente en la base de datos PostgreSQL.
+func SincronizarContenedoresDevice(ctx context.Context, serviceID string, registry *cache.Registry, logger *slog.Logger) error {
+	// Construir mapa de resolución de hostnames a partir del registro
+	regMap := make(map[string]string)
+	for _, svc := range registry.List() {
+		regMap[svc.Hostname] = svc.ServiceID
+	}
+
+	// Consultar de forma síncrona al agente vía NATS
+	ctxTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	resp, err := commander.ListContainers(ctxTimeout, serviceID, regMap, &docker.ListContainersRequest{All: true})
+	if err != nil {
+		return fmt.Errorf("failed to fetch containers from NATS for service_id %s: %w", serviceID, err)
+	}
+
+	total := len(resp.Containers)
+	var running, stopped int
+	for _, cs := range resp.Containers {
+		if cs.State == "running" {
+			running++
+		} else {
+			stopped++
+		}
+	}
+
+	// Obtener el dispositivo de la base de datos
+	dev, err := repository.GetDeviceByServiceID(ctx, serviceID)
+	if err != nil {
+		return fmt.Errorf("failed to get device from db: %w", err)
+	}
+	if dev == nil {
+		return fmt.Errorf("device not found in db: %s", serviceID)
+	}
+
+	// Actualizar contadores
+	dev.TotalContainers = total
+	dev.RunningContainers = running
+	dev.StoppedContainers = stopped
+
+	// Guardar el dispositivo actualizado en la base de datos
+	if err := repository.SaveDevice(ctx, dev); err != nil {
+		return fmt.Errorf("failed to save device containers count to db: %w", err)
+	}
+
+	logger.Debug("synchronized device containers to database", "service_id", serviceID, "total", total, "running", running, "stopped", stopped)
+	return nil
+}
+
+func broadcastInstanceContainersUpdated(hub *websocket.Hub, serviceID string) {
+	if hub == nil {
+		return
+	}
+
+	// Leer el dispositivo de la base de datos local para tener los números actualizados
+	dev, err := repository.GetDeviceByServiceID(context.Background(), serviceID)
+	if err != nil || dev == nil {
+		return
+	}
+
+	broadcastEvent(hub, "dashboard", "instance.containers_updated", map[string]interface{}{
+		"service_id": serviceID,
+		"total":      dev.TotalContainers,
+		"running":    dev.RunningContainers,
+		"stopped":    dev.StoppedContainers,
+	})
+}
+
+func subscribeHeartbeats(registry *cache.Registry, history *cache.ConnectionHistory, hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.SubjectDockerServiceHeartbeat, func(data []byte) {
+		var heartbeat docker.DockerServiceHeartbeat
+		if err := proto.Unmarshal(data, &heartbeat); err != nil {
+			logger.Warn("failed to unmarshal heartbeat", "error", err)
+			return
+		}
+
+		currentStatus := "offline"
+		if dev, err := repository.GetDeviceByServiceID(context.Background(), heartbeat.ServiceId); err == nil && dev != nil {
+			currentStatus = dev.Status
+		}
+
+		statusToPersist := heartbeat.Status
+		if currentStatus == "pending" {
+			statusToPersist = "pending"
+		}
+
+		// Registrar estado en el Registry en memoria
+		if statusToPersist == "online" {
+			registry.Register(&cache.DockerServiceInfo{
+				ServiceID:   heartbeat.ServiceId,
+				Hostname:    heartbeat.Hostname,
+				LastSeen:    heartbeat.Timestamp,
+				HostMetrics: heartbeat.HostMetrics,
+			})
+		} else {
+			registry.Deregister(heartbeat.ServiceId)
+		}
+
+		// Actualizar el historial de conexiones
+		if currentStatus != statusToPersist && history != nil {
+			if onlineCount, offlineCount, totalCount, err := GetConnectionStats(context.Background(), registry); err == nil {
+				history.Record(heartbeat.Timestamp, onlineCount, offlineCount, totalCount)
+			}
+		}
+
+		// Guardar estado en base de datos si ha cambiado
+		if currentStatus != statusToPersist {
+			dev, err := repository.GetDeviceByServiceID(context.Background(), heartbeat.ServiceId)
+			if err == nil && dev != nil {
+				dev.Status = statusToPersist
+				dev.LastSeen = heartbeat.Timestamp
+				if heartbeat.HostMetrics != nil {
+					dev.CpuPercent = heartbeat.HostMetrics.CpuPercent
+					dev.MemoryPercent = heartbeat.HostMetrics.MemoryPercent
+					dev.DiskPercent = heartbeat.HostMetrics.DiskPercent
+					dev.LoadAverage = heartbeat.HostMetrics.LoadAverage
+					dev.UptimeSeconds = heartbeat.HostMetrics.UptimeSeconds
+					dev.CpuCores = heartbeat.HostMetrics.CpuCores
+					dev.MemoryTotal = heartbeat.HostMetrics.MemoryTotal
+					dev.MemoryUsed = heartbeat.HostMetrics.MemoryUsed
+					dev.DiskTotal = heartbeat.HostMetrics.DiskTotal
+				dev.DiskUsed = heartbeat.HostMetrics.DiskUsed
+				dev.Platform = heartbeat.HostMetrics.Platform
+				dev.ProcessCount = heartbeat.HostMetrics.ProcessCount
+			}
+			if err := repository.SaveDevice(context.Background(), dev); err != nil {
+				logger.Warn("failed to update device status in db", "error", err)
+			}
+
+			// Registrar evento de cambio de estado para reconstrucción del historial.
+			if statusToPersist == "online" {
+				if err := insertInstanceEvent(context.Background(), heartbeat.ServiceId, "instance.online", heartbeat.Timestamp); err != nil {
+					logger.Warn("failed to insert instance.online event", "service_id", heartbeat.ServiceId, "error", err)
+				}
+			} else if statusToPersist == "offline" {
+				if err := insertInstanceEvent(context.Background(), heartbeat.ServiceId, "instance.offline", heartbeat.Timestamp); err != nil {
+					logger.Warn("failed to insert instance.offline event", "service_id", heartbeat.ServiceId, "error", err)
+				}
+			}
+			}
+		} else if statusToPersist == "online" {
+			// Si sigue online, actualizar LastSeen y métricas en BD periódicamente
+			dev, err := repository.GetDeviceByServiceID(context.Background(), heartbeat.ServiceId)
+			if err == nil && dev != nil {
+				dev.LastSeen = heartbeat.Timestamp
+				if heartbeat.HostMetrics != nil {
+					dev.CpuPercent = heartbeat.HostMetrics.CpuPercent
+					dev.MemoryPercent = heartbeat.HostMetrics.MemoryPercent
+					dev.DiskPercent = heartbeat.HostMetrics.DiskPercent
+					dev.LoadAverage = heartbeat.HostMetrics.LoadAverage
+					dev.UptimeSeconds = heartbeat.HostMetrics.UptimeSeconds
+					dev.CpuCores = heartbeat.HostMetrics.CpuCores
+					dev.MemoryTotal = heartbeat.HostMetrics.MemoryTotal
+					dev.MemoryUsed = heartbeat.HostMetrics.MemoryUsed
+					dev.DiskTotal = heartbeat.HostMetrics.DiskTotal
+					dev.DiskUsed = heartbeat.HostMetrics.DiskUsed
+					dev.Platform = heartbeat.HostMetrics.Platform
+					dev.ProcessCount = heartbeat.HostMetrics.ProcessCount
+				}
+				_ = repository.SaveDevice(context.Background(), dev)
+			}
+		}
+
+		payload := map[string]interface{}{
+			"service_id": heartbeat.ServiceId,
+			"hostname":   heartbeat.Hostname,
+			"status":     statusToPersist,
+			"timestamp":  heartbeat.Timestamp,
+		}
+		if heartbeat.HostMetrics != nil {
+			payload["host_metrics"] = heartbeat.HostMetrics
+		}
+		broadcastEvent(hub, "dashboard", "heartbeat", payload)
+		broadcastEvent(hub, "device:"+heartbeat.ServiceId, "heartbeat", payload)
+		
+		if currentStatus != "online" && currentStatus != "pending" && heartbeat.Status == "online" {
+			broadcastEvent(hub, "dashboard", "instance.online", payload)
+			broadcastEvent(hub, "device:"+heartbeat.ServiceId, "instance.online", payload)
+		}
+
+		// Sincronizar contenedores de forma asíncrona la primera vez que se ve online en esta sesión
+		if statusToPersist == "online" {
+			if _, yaSincronizado := sincronizadosInicio.Load(heartbeat.ServiceId); !yaSincronizado {
+				sincronizadosInicio.Store(heartbeat.ServiceId, true)
+				go func(serviceID string) {
+					if err := SincronizarContenedoresDevice(context.Background(), serviceID, registry, logger); err != nil {
+						logger.Warn("failed to sync containers on initial heartbeat online", "service_id", serviceID, "error", err)
+						sincronizadosInicio.Delete(serviceID)
+					} else {
+						broadcastInstanceContainersUpdated(hub, serviceID)
+					}
+				}(heartbeat.ServiceId)
+			}
+		}
+		logger.Debug("docker-service heartbeat processed", "service_id", heartbeat.ServiceId, "status", statusToPersist)
+	})
+	return err
+}
+
+func subscribeContainerCreated(registry *cache.Registry, hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.EventSubject(events.SubjectContainerCreated, "*"), func(data []byte) {
+		var event docker.ContainerCreatedEvent
+		if err := proto.Unmarshal(data, &event); err != nil {
+			logger.Warn("failed to unmarshal container created event", "error", err)
+			return
+		}
+
+		// Persistir evento en base de datos
+		payloadMap := map[string]interface{}{
+			"id":         event.Id,
+			"name":       event.Name,
+			"image":      event.Image,
+			"created_at": event.CreatedAt,
+		}
+		payloadBytes, _ := json.Marshal(payloadMap)
+		evt := &models.Event{
+			DeviceID:  event.ServiceId,
+			Type:      "container.created",
+			Payload:   string(payloadBytes),
+			Timestamp: time.Unix(event.CreatedAt, 0),
+		}
+		if err := repository.InsertEvent(context.Background(), evt); err != nil {
+			logger.Warn("failed to insert container created event", "error", err)
+		}
+
+		broadcastEvent(hub, "containers", "container.created", map[string]interface{}{
+			"service_id": event.ServiceId,
+			"id":         event.Id,
+			"name":       event.Name,
+			"image":      event.Image,
+			"created_at": event.CreatedAt,
+		})
+
+		// Sincronizar contadores en base de datos y hacer broadcast
+		go func(serviceID string) {
+			if err := SincronizarContenedoresDevice(context.Background(), serviceID, registry, logger); err != nil {
+				logger.Warn("failed to sync containers on created event", "service_id", serviceID, "error", err)
+			} else {
+				broadcastInstanceContainersUpdated(hub, serviceID)
+			}
+		}(event.ServiceId)
+
+		logger.Debug("container created event received", "service_id", event.ServiceId, "id", event.Id)
+	})
+	return err
+}
+
+func subscribeContainerStarted(registry *cache.Registry, hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.EventSubject(events.SubjectContainerStarted, "*"), func(data []byte) {
+		var event docker.ContainerStartedEvent
+		if err := proto.Unmarshal(data, &event); err != nil {
+			logger.Warn("failed to unmarshal container started event", "error", err)
+			return
+		}
+
+		// Persistir evento en base de datos
+		payloadMap := map[string]interface{}{
+			"id":        event.Id,
+			"timestamp": event.Timestamp,
+		}
+		payloadBytes, _ := json.Marshal(payloadMap)
+		evt := &models.Event{
+			DeviceID:  event.ServiceId,
+			Type:      "container.started",
+			Payload:   string(payloadBytes),
+			Timestamp: time.Unix(event.Timestamp, 0),
+		}
+		if err := repository.InsertEvent(context.Background(), evt); err != nil {
+			logger.Warn("failed to insert container started event", "error", err)
+		}
+
+		broadcastEvent(hub, "containers", "container.started", map[string]interface{}{
+			"service_id": event.ServiceId,
+			"id":         event.Id,
+			"timestamp":  event.Timestamp,
+		})
+
+		// Sincronizar contadores en base de datos y hacer broadcast
+		go func(serviceID string) {
+			if err := SincronizarContenedoresDevice(context.Background(), serviceID, registry, logger); err != nil {
+				logger.Warn("failed to sync containers on started event", "service_id", serviceID, "error", err)
+			} else {
+				broadcastInstanceContainersUpdated(hub, serviceID)
+			}
+		}(event.ServiceId)
+
+		logger.Debug("container started event received", "service_id", event.ServiceId, "id", event.Id)
+	})
+	return err
+}
+
+func subscribeContainerStopped(registry *cache.Registry, hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.EventSubject(events.SubjectContainerStopped, "*"), func(data []byte) {
+		var event docker.ContainerStoppedEvent
+		if err := proto.Unmarshal(data, &event); err != nil {
+			logger.Warn("failed to unmarshal container stopped event", "error", err)
+			return
+		}
+
+		// Persistir evento en base de datos
+		payloadMap := map[string]interface{}{
+			"id":        event.Id,
+			"timestamp": event.Timestamp,
+		}
+		payloadBytes, _ := json.Marshal(payloadMap)
+		evt := &models.Event{
+			DeviceID:  event.ServiceId,
+			Type:      "container.stopped",
+			Payload:   string(payloadBytes),
+			Timestamp: time.Unix(event.Timestamp, 0),
+		}
+		if err := repository.InsertEvent(context.Background(), evt); err != nil {
+			logger.Warn("failed to insert container stopped event", "error", err)
+		}
+
+		broadcastEvent(hub, "containers", "container.stopped", map[string]interface{}{
+			"service_id": event.ServiceId,
+			"id":         event.Id,
+			"timestamp":  event.Timestamp,
+		})
+
+		// Sincronizar contadores en base de datos y hacer broadcast
+		go func(serviceID string) {
+			if err := SincronizarContenedoresDevice(context.Background(), serviceID, registry, logger); err != nil {
+				logger.Warn("failed to sync containers on stopped event", "service_id", serviceID, "error", err)
+			} else {
+				broadcastInstanceContainersUpdated(hub, serviceID)
+			}
+		}(event.ServiceId)
+
+		logger.Debug("container stopped event received", "service_id", event.ServiceId, "id", event.Id)
+	})
+	return err
+}
+
+func subscribeContainerRestarted(registry *cache.Registry, hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.EventSubject(events.SubjectContainerRestarted, "*"), func(data []byte) {
+		var event docker.ContainerRestartedEvent
+		if err := proto.Unmarshal(data, &event); err != nil {
+			logger.Warn("failed to unmarshal container restarted event", "error", err)
+			return
+		}
+
+		// Persistir evento en base de datos
+		payloadMap := map[string]interface{}{
+			"id":        event.Id,
+			"timestamp": event.Timestamp,
+		}
+		payloadBytes, _ := json.Marshal(payloadMap)
+		evt := &models.Event{
+			DeviceID:  event.ServiceId,
+			Type:      "container.restarted",
+			Payload:   string(payloadBytes),
+			Timestamp: time.Unix(event.Timestamp, 0),
+		}
+		if err := repository.InsertEvent(context.Background(), evt); err != nil {
+			logger.Warn("failed to insert container restarted event", "error", err)
+		}
+
+		broadcastEvent(hub, "containers", "container.restarted", map[string]interface{}{
+			"service_id": event.ServiceId,
+			"id":         event.Id,
+			"timestamp":  event.Timestamp,
+		})
+
+		// Sincronizar contadores en base de datos y hacer broadcast
+		go func(serviceID string) {
+			if err := SincronizarContenedoresDevice(context.Background(), serviceID, registry, logger); err != nil {
+				logger.Warn("failed to sync containers on restarted event", "service_id", serviceID, "error", err)
+			} else {
+				broadcastInstanceContainersUpdated(hub, serviceID)
+			}
+		}(event.ServiceId)
+
+		logger.Debug("container restarted event received", "service_id", event.ServiceId, "id", event.Id)
+	})
+	return err
+}
+
+func subscribeContainerRenamed(registry *cache.Registry, hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.EventSubject(events.SubjectContainerRenamed, "*"), func(data []byte) {
+		var event docker.ContainerRenamedEvent
+		if err := proto.Unmarshal(data, &event); err != nil {
+			logger.Warn("failed to unmarshal container renamed event", "error", err)
+			return
+		}
+
+		// Persistir evento en base de datos
+		payloadMap := map[string]interface{}{
+			"id":        event.Id,
+			"old_name":  event.OldName,
+			"new_name":  event.NewName,
+			"timestamp": event.Timestamp,
+		}
+		payloadBytes, _ := json.Marshal(payloadMap)
+		evt := &models.Event{
+			DeviceID:  event.ServiceId,
+			Type:      "container.renamed",
+			Payload:   string(payloadBytes),
+			Timestamp: time.Unix(event.Timestamp, 0),
+		}
+		if err := repository.InsertEvent(context.Background(), evt); err != nil {
+			logger.Warn("failed to insert container renamed event", "error", err)
+		}
+
+		broadcastEvent(hub, "containers", "container.renamed", map[string]interface{}{
+			"service_id": event.ServiceId,
+			"id":         event.Id,
+			"old_name":   event.OldName,
+			"new_name":   event.NewName,
+			"timestamp":  event.Timestamp,
+		})
+
+		logger.Debug("container renamed event received", "service_id", event.ServiceId, "id", event.Id)
+	})
+	return err
+}
+
+func subscribeContainerRemoved(registry *cache.Registry, hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.EventSubject(events.SubjectContainerRemoved, "*"), func(data []byte) {
+		var event docker.ContainerRemovedEvent
+		if err := proto.Unmarshal(data, &event); err != nil {
+			logger.Warn("failed to unmarshal container removed event", "error", err)
+			return
+		}
+
+		// Persistir evento en base de datos
+		payloadMap := map[string]interface{}{
+			"id":        event.Id,
+			"name":      event.Name,
+			"timestamp": event.Timestamp,
+		}
+		payloadBytes, _ := json.Marshal(payloadMap)
+		evt := &models.Event{
+			DeviceID:  event.ServiceId,
+			Type:      "container.removed",
+			Payload:   string(payloadBytes),
+			Timestamp: time.Unix(event.Timestamp, 0),
+		}
+		if err := repository.InsertEvent(context.Background(), evt); err != nil {
+			logger.Warn("failed to insert container removed event", "error", err)
+		}
+
+		broadcastEvent(hub, "containers", "container.removed", map[string]interface{}{
+			"service_id": event.ServiceId,
+			"id":         event.Id,
+			"name":       event.Name,
+			"timestamp":  event.Timestamp,
+		})
+
+		// Sincronizar contadores en base de datos y hacer broadcast
+		go func(serviceID string) {
+			if err := SincronizarContenedoresDevice(context.Background(), serviceID, registry, logger); err != nil {
+				logger.Warn("failed to sync containers on removed event", "service_id", serviceID, "error", err)
+			} else {
+				broadcastInstanceContainersUpdated(hub, serviceID)
+			}
+		}(event.ServiceId)
+
+		logger.Debug("container removed event received", "service_id", event.ServiceId, "id", event.Id)
+	})
+	return err
+}
+
+// insertInstanceEvent persiste un evento de cambio de estado de instancia en la base de datos.
+func insertInstanceEvent(ctx context.Context, serviceID, eventType string, timestamp int64) error {
+	evt := &models.Event{
+		DeviceID:  serviceID,
+		Type:      eventType,
+		Payload:   fmt.Sprintf(`{"status": %q}`, eventType),
+		Timestamp: time.Unix(timestamp, 0).UTC(),
+	}
+	return repository.InsertEvent(ctx, evt)
+}
+
+// GetConnectionStats calcula los contadores de conexión usando la base de datos como fuente de verdad.
+func GetConnectionStats(ctx context.Context, registry *cache.Registry) (onlineCount, offlineCount, totalCount int, err error) {
+	devices, err := repository.ListDevices(ctx)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	for _, d := range devices {
+		if d.Status != "pending" {
+			totalCount++
+		}
+	}
+
+	onlineCount, _, _ = registry.ConnectionCounts()
+	if onlineCount > totalCount {
+		onlineCount = totalCount
+	}
+	offlineCount = totalCount - onlineCount
+
+	return onlineCount, offlineCount, totalCount, nil
+}

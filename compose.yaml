@@ -1,0 +1,42 @@
+services:
+  nats:
+    image: nats:latest
+    container_name: orchestrack-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - orchestrack
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: orchestrack-db-dev
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: orchestrack_dev
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - orchestrack
+  natsboard:
+    image: mpepping/natsboard:latest
+    container_name: orchestrack-natsboard
+    ports:
+      - "3000:3000"
+    environment:
+      - NATS_MON_URL=http://nats:8222
+    command: bin/natsboard --nats-mon-url http://nats:8222
+    networks:
+      - orchestrack
+    depends_on:
+      - nats
+
+volumes:
+  postgres-data:
+
+networks:
+  orchestrack:
+    driver: bridge

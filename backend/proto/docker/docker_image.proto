@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package orchestrack.docker;
+
+option go_package = "github.com/go/orchestrack/backend/proto/docker;docker";
+
+import "proto/docker/docker_common.proto";
+
+// Servicio interno de `docker-service` para operaciones sobre imágenes Docker.
+service DockerImageService {
+  // Listar imágenes disponibles en el host.
+  rpc ListImages(ListImagesRequest) returns (ListImagesResponse);
+
+  // Descargar una imagen del registry.
+  rpc PullImage(PullImageRequest) returns (PullImageResponse);
+
+  // Eliminar una imagen del host.
+  rpc RemoveImage(RemoveImageRequest) returns (RemoveImageResponse);
+}
+
+// ---------- ListImages ----------
+
+message ListImagesRequest {
+  // Si es true, incluye imágenes intermedias (dangling).
+  bool all = 1;
+  // Filtros opcionales en formato clave=valor.
+  repeated Label filters = 2;
+}
+
+message ListImagesResponse {
+  repeated ImageSummary images = 1;
+}
+
+// ---------- PullImage ----------
+
+message PullImageRequest {
+  string image = 1; // nombre:tag
+}
+
+message PullImageResponse {
+  string image = 1;
+}
+
+// ---------- RemoveImage ----------
+
+message RemoveImageRequest {
+  string id = 1; // ID o name:tag
+  bool force = 2;
+  bool prune_children = 3;
+}
+
+message RemoveImageResponse {
+  string id = 1;
+  repeated string deleted = 2;
+}
+
+// ---------- Eventos ----------
+
+message ImagePulledEvent {
+  string service_id = 1;
+  string image = 2;
+  int64 timestamp = 3;
+}
+
+message ImageRemovedEvent {
+  string service_id = 1;
+  string id = 2;
+  int64 timestamp = 3;
+}
+
+// Resumen de una imagen Docker.
+message ImageSummary {
+  string id = 1;
+  repeated string repo_tags = 2;
+  int64 created = 3; // Timestamp en segundos
+  int64 size = 4;    // Tamaño en bytes
+  int64 shared_size = 5;
+  int64 virtual_size = 6;
+  repeated string labels = 7;
+}

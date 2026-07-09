@@ -1,0 +1,145 @@
+package database
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/go/orchestrack/backend/api-service/src/models"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+// PostgresRepository implementa el repositorio de usuarios usando GORM + PostgreSQL.
+type PostgresRepository struct {
+	db *gorm.DB
+}
+
+// NewPostgresRepository crea una nueva conexión a PostgreSQL y ejecuta migraciones.
+func NewPostgresRepository(databaseURL string) (*PostgresRepository, error) {
+	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
+	}
+
+	if err := db.AutoMigrate(&models.User{}, &models.Device{}, &models.Event{}, &models.RegistrationToken{}); err != nil {
+		return nil, fmt.Errorf("failed to migrate models: %w", err)
+	}
+
+	return &PostgresRepository{db: db}, nil
+}
+
+// InsertUser crea un nuevo usuario.
+func (repo *PostgresRepository) InsertUser(ctx context.Context, user *models.User) error {
+	return repo.db.WithContext(ctx).Create(user).Error
+}
+
+// GetUserById busca un usuario por ID.
+func (repo *PostgresRepository) GetUserById(ctx context.Context, id string) (*models.User, error) {
+	var user models.User
+	if err := repo.db.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// GetUserByEmail busca un usuario por email.
+func (repo *PostgresRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
+	if err := repo.db.WithContext(ctx).First(&user, "email = ?", email).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// SaveDevice crea o actualiza un dispositivo.
+func (repo *PostgresRepository) SaveDevice(ctx context.Context, device *models.Device) error {
+	var existing models.Device
+	err := repo.db.WithContext(ctx).Where("service_id = ?", device.ServiceID).First(&existing).Error
+	if err == nil {
+		device.ID = existing.ID
+		device.CreatedAt = existing.CreatedAt
+	}
+	return repo.db.WithContext(ctx).Save(device).Error
+}
+
+// GetDeviceByServiceID busca un dispositivo por su ServiceID.
+func (repo *PostgresRepository) GetDeviceByServiceID(ctx context.Context, serviceID string) (*models.Device, error) {
+	var device models.Device
+	if err := repo.db.WithContext(ctx).Where("service_id = ?", serviceID).First(&device).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &device, nil
+}
+
+// ListDevices obtiene todos los dispositivos registrados.
+func (repo *PostgresRepository) ListDevices(ctx context.Context) ([]*models.Device, error) {
+	var devices []*models.Device
+	if err := repo.db.WithContext(ctx).Order("service_id ASC").Find(&devices).Error; err != nil {
+		return nil, err
+	}
+	return devices, nil
+}
+
+// InsertEvent crea un nuevo evento.
+func (repo *PostgresRepository) InsertEvent(ctx context.Context, event *models.Event) error {
+	return repo.db.WithContext(ctx).Create(event).Error
+}
+
+// ListEventsByDevice lista los eventos más recientes de un dispositivo.
+func (repo *PostgresRepository) ListEventsByDevice(ctx context.Context, deviceID string, limit int) ([]*models.Event, error) {
+	var events []*models.Event
+	query := repo.db.WithContext(ctx).Where("device_id = ?", deviceID).Order("timestamp DESC")
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+	if err := query.Find(&events).Error; err != nil {
+		return nil, err
+	}
+	return events, nil
+}
+
+// Close cierra la conexión a la base de datos.
+func (repo *PostgresRepository) Close() error {
+	sqlDB, err := repo.db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
+}
+
+// CreateRegistrationToken crea un token de registro en la base de datos.
+func (repo *PostgresRepository) CreateRegistrationToken(ctx context.Context, token *models.RegistrationToken) error {
+	return repo.db.WithContext(ctx).Create(token).Error
+}
+
+// GetRegistrationToken busca un token por su cadena.
+func (repo *PostgresRepository) GetRegistrationToken(ctx context.Context, tokenStr string) (*models.RegistrationToken, error) {
+	var token models.RegistrationToken
+	if err := repo.db.WithContext(ctx).Where("token = ?", tokenStr).First(&token).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &token, nil
+}
+
+// UpdateRegistrationToken actualiza un token existente en la base de datos.
+func (repo *PostgresRepository) UpdateRegistrationToken(ctx context.Context, token *models.RegistrationToken) error {
+	return repo.db.WithContext(ctx).Save(token).Error
+}
+
+// DeleteExpiredRegistrationTokens elimina los tokens que han expirado o ya han sido usados.
+func (repo *PostgresRepository) DeleteExpiredRegistrationTokens(ctx context.Context) error {
+	return repo.db.WithContext(ctx).Where("expires_at < ? OR used = ?", time.Now(), true).Delete(&models.RegistrationToken{}).Error
+}

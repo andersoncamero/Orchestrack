@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package orchestrack.docker;
+
+option go_package = "github.com/go/orchestrack/backend/proto/docker;docker";
+
+// Estados posibles de un contenedor según Docker.
+enum ContainerStatus {
+  CONTAINER_STATUS_UNSPECIFIED = 0;
+  CONTAINER_STATUS_CREATED = 1;
+  CONTAINER_STATUS_RUNNING = 2;
+  CONTAINER_STATUS_PAUSED = 3;
+  CONTAINER_STATUS_RESTARTING = 4;
+  CONTAINER_STATUS_REMOVING = 5;
+  CONTAINER_STATUS_EXITED = 6;
+  CONTAINER_STATUS_DEAD = 7;
+}
+
+// Representación de un puerto expuesto por un contenedor.
+message Port {
+  string ip = 1;
+  int32 private_port = 2;
+  int32 public_port = 3;
+  string type = 4; // tcp, udp, sctp
+}
+
+// Variable de entorno en formato KEY=VALUE.
+message EnvVar {
+  string key = 1;
+  string value = 2;
+}
+
+// Montaje de volumen o bind mount.
+message VolumeMount {
+  string source = 1;      // Ruta o nombre del volumen en el host
+  string target = 2;      // Ruta dentro del contenedor
+  string type = 3;        // bind, volume, tmpfs
+  bool read_only = 4;
+}
+
+// Recursos básicos de un contenedor.
+message ContainerResources {
+  int64 memory_limit = 1;     // En bytes
+  float cpu_limit = 2;        // Número de CPUs (0 = sin límite)
+}
+
+// Etiquetas de un contenedor.
+message Label {
+  string key = 1;
+  string value = 2;
+}

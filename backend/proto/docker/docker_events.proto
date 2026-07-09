@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package orchestrack.docker;
+
+option go_package = "github.com/go/orchestrack/backend/proto/docker;docker";
+
+// Eventos publicados por docker-service cuando un contenedor cambia de estado.
+
+message ContainerCreatedEvent {
+  string service_id = 1;
+  string id = 2;
+  string name = 3;
+  string image = 4;
+  int64 created_at = 5;
+}
+
+message ContainerStartedEvent {
+  string service_id = 1;
+  string id = 2;
+  int64 timestamp = 3;
+}
+
+message ContainerStoppedEvent {
+  string service_id = 1;
+  string id = 2;
+  int64 timestamp = 3;
+}
+
+message ContainerRestartedEvent {
+  string service_id = 1;
+  string id = 2;
+  int64 timestamp = 3;
+}
+
+message ContainerRenamedEvent {
+  string service_id = 1;
+  string id = 2;
+  string old_name = 3;
+  string new_name = 4;
+  int64 timestamp = 5;
+}
+
+message ContainerRemovedEvent {
+  string service_id = 1;
+  string id = 2;
+  string name = 3;
+  int64 timestamp = 4;
+}
+
+message AgentStatusEvent {
+  string service_id = 1;
+  string hostname = 2;
+  string status = 3;
+  int64 timestamp = 4;
+  string reason = 5;
+}

@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package orchestrack.docker;
+
+option go_package = "github.com/go/orchestrack/backend/proto/docker;docker";
+
+import "proto/docker/docker_common.proto";
+
+// Servicio interno de `docker-service` para operaciones sobre contenedores Docker.
+service DockerContainerService {
+  // Listar contenedores. Por defecto incluye detenidos.
+  rpc ListContainers(ListContainersRequest) returns (ListContainersResponse);
+
+  // Obtener el detalle completo de un contenedor por ID o nombre.
+  rpc GetContainer(GetContainerRequest) returns (GetContainerResponse);
+
+  // Crear un contenedor sin iniciarlo.
+  rpc CreateContainer(CreateContainerRequest) returns (CreateContainerResponse);
+
+  // Iniciar un contenedor detenido.
+  rpc StartContainer(StartContainerRequest) returns (StartContainerResponse);
+
+  // Detener un contenedor en ejecución.
+  rpc StopContainer(StopContainerRequest) returns (StopContainerResponse);
+
+  // Reiniciar un contenedor.
+  rpc RestartContainer(RestartContainerRequest) returns (RestartContainerResponse);
+
+  // Renombrar un contenedor existente (operación de "actualizar" básica).
+  rpc RenameContainer(RenameContainerRequest) returns (RenameContainerResponse);
+
+  // Eliminar un contenedor.
+  rpc RemoveContainer(RemoveContainerRequest) returns (RemoveContainerResponse);
+}
+
+// ---------- ListContainers ----------
+
+message ListContainersRequest {
+  // Si es true, incluye contenedores detenidos.
+  bool all = 1;
+
+  // Filtros opcionales en formato clave=valor (por ejemplo: status=running).
+  repeated Label filters = 2;
+}
+
+message ListContainersResponse {
+  repeated ContainerSummary containers = 1;
+}
+
+// ---------- GetContainer ----------
+
+message GetContainerRequest {
+  string id = 1;
+}
+
+message GetContainerResponse {
+  Container container = 1;
+}
+
+// ---------- CreateContainer ----------
+
+message CreateContainerRequest {
+  string image = 1;
+  string name = 2;
+  string command = 3;
+  repeated string args = 4;
+  repeated EnvVar env = 5;
+  repeated Port exposed_ports = 6;
+  repeated VolumeMount volumes = 7;
+  repeated Label labels = 8;
+  ContainerResources resources = 9;
+  bool tty = 10;
+  bool interactive = 11;
+  bool auto_remove = 12;
+  bool publish_all_ports = 13;
+}
+
+message CreateContainerResponse {
+  string id = 1;
+  string name = 2;
+  repeated string warnings = 3;
+}
+
+// ---------- StartContainer ----------
+
+message StartContainerRequest {
+  string id = 1;
+}
+
+message StartContainerResponse {
+  string id = 1;
+}
+
+// ---------- StopContainer ----------
+
+message StopContainerRequest {
+  string id = 1;
+
+  // Tiempo de espera en segundos antes de forzar la detención.
+  int32 timeout_seconds = 2;
+}
+
+message StopContainerResponse {
+  string id = 1;
+}
+
+// ---------- RestartContainer ----------
+
+message RestartContainerRequest {
+  string id = 1;
+
+  // Tiempo de espera en segundos antes de forzar la detención durante el reinicio.
+  int32 timeout_seconds = 2;
+}
+
+message RestartContainerResponse {
+  string id = 1;
+}
+
+// ---------- RenameContainer ----------
+
+message RenameContainerRequest {
+  string id = 1;
+  string new_name = 2;
+}
+
+message RenameContainerResponse {
+  string id = 1;
+  string name = 2;
+}
+
+// ---------- RemoveContainer ----------
+
+message RemoveContainerRequest {
+  string id = 1;
+
+  // Si es true, fuerza la eliminación de un contenedor en ejecución.
+  bool force = 2;
+
+  // Si es true, elimina también los volúmenes asociados.
+  bool remove_volumes = 3;
+}
+
+message RemoveContainerResponse {
+  string id = 1;
+}
+
+// ---------- Modelos ----------
+
+// Resumen de un contenedor para listados.
+message ContainerSummary {
+  string id = 1;
+  string name = 2;
+  string image = 3;
+  ContainerStatus status = 4;
+  string state = 5; // Estado textual de Docker (running, exited, etc.)
+  repeated Port ports = 6;
+  int64 created = 7; // Timestamp en segundos
+}
+
+// Detalle completo de un contenedor.
+message Container {
+  string id = 1;
+  string name = 2;
+  string image = 3;
+  ContainerStatus status = 4;
+  string state = 5;
+  string command = 6;
+  repeated string args = 7;
+  repeated EnvVar env = 8;
+  repeated Port ports = 9;
+  repeated VolumeMount volumes = 10;
+  repeated Label labels = 11;
+  ContainerResources resources = 12;
+  bool tty = 13;
+  bool interactive = 14;
+  bool auto_remove = 15;
+  int64 created = 16;
+  string platform = 17;
+}
