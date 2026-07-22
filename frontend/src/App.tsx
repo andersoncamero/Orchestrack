@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { WebSocketProvider } from './contexts/WebSocketContext'
 import { NotificationProvider } from './contexts/NotificationContext'
 import DashboardPage from './components/pages/DashboardPage'
+import LandingPage from './components/pages/LandingPage'
 import InstancesPage from './components/pages/InstancesPage'
 import InstanceDetailPage from './components/pages/InstanceDetailPage'
 import ContainersOverviewPage from './components/pages/ContainersOverviewPage'
@@ -48,7 +49,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (token) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   return <>{children}</>
@@ -75,6 +76,10 @@ function AppRoutes() {
       />
       <Route
         path="/"
+        element={<LandingPage />}
+      />
+      <Route
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <DashboardPage />

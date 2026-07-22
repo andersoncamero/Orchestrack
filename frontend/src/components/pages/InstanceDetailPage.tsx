@@ -168,7 +168,7 @@ export default function InstanceDetailPage() {
       <header className="h-20 bg-(--color-bg-surface)/80 backdrop-blur-sm border-b border-(--color-border) flex items-center justify-between px-8 sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="p-2 bg-(--color-bg-surface) hover:bg-(--color-bg-surface-hover) text-(--color-text-secondary) rounded-lg transition-colors border border-(--color-border)"
           >
             <ArrowLeft className="w-5 h-5" />
