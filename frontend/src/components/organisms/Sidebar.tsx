@@ -24,7 +24,7 @@ export function Sidebar() {
   const location = useLocation()
 
   const menuItems: MenuItem[] = [
-    { icon: LayoutDashboard, label: t('dashboard'), path: '/' },
+    { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard' },
     { icon: Server, label: t('instances'), path: '/instances' },
     { icon: Bell, label: t('alerts'), path: '/alerts' },
     { icon: Cpu, label: t('processes'), path: '/processes' },
