@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { api } from '../services/api'
 import type { ConnectionHistorySample, DeviceConnectionEvent } from '../types'
 
@@ -8,7 +8,7 @@ export function useConnectionHistory(hours = 24, serviceId?: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchHistory = async (silent = false) => {
+  const fetchHistory = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
     try {
       if (serviceId) {
@@ -26,11 +26,11 @@ export function useConnectionHistory(hours = 24, serviceId?: string) {
     } finally {
       if (!silent) setLoading(false)
     }
-  }
+  }, [hours, serviceId])
 
   useEffect(() => {
     fetchHistory()
-  }, [hours, serviceId])
+  }, [fetchHistory])
 
   return { samples, events, loading, error, refetch: fetchHistory }
 }

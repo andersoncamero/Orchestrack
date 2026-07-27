@@ -1,22 +1,34 @@
-import { useState } from 'react'
-import { Bell, ChevronDown } from 'lucide-react'
-import type { Instance } from '../../types'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Bell, Settings as SettingsIcon, LogOut } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useNotifications } from '../../contexts/NotificationContext'
+import { useAuth } from '../../contexts/AuthContext'
 import NotificationDropdown from '../molecules/NotificationDropdown'
 
 interface HeaderProps {
   title: string
   subtitle?: string
-  instances: Instance[]
-  selectedInstance: string
-  onSelectInstance: (id: string) => void
 }
 
-export function Header({ title, subtitle, instances, selectedInstance, onSelectInstance }: HeaderProps) {
+export function Header({ title, subtitle }: HeaderProps) {
   const { t } = useLanguage()
   const { unreadCount } = useNotifications()
-  const [isOpen, setIsOpen] = useState(false)
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <header className="h-20 bg-(--color-bg-surface)/90 backdrop-blur-sm border-b border-(--color-border) flex items-center justify-between px-8 sticky top-0 z-10">
@@ -26,28 +38,9 @@ export function Header({ title, subtitle, instances, selectedInstance, onSelectI
       </div>
 
       <div className="flex items-center gap-6">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-(--color-text-muted) font-medium">{t('instance')}</span>
-          <div className="relative">
-            <select
-              value={selectedInstance}
-              onChange={(e) => onSelectInstance(e.target.value)}
-              className="appearance-none bg-(--color-bg-surface) border border-(--color-border) text-(--color-text-main) text-sm rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-(--color-primary) min-w-[220px]"
-            >
-              <option value="all">{t('allCluster')} ({instances.length} {t('hosts')})</option>
-              {instances.map((instance) => (
-                <option key={instance.service_id} value={instance.service_id}>
-                  {instance.hostname}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-(--color-text-muted) absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-        </div>
-
         <div className="relative">
           <button
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
             className="relative p-2 text-(--color-text-muted) hover:text-(--color-text-main) transition-colors rounded-xl hover:bg-(--color-bg-surface-hover)"
           >
             <Bell className="w-5 h-5" />
@@ -57,16 +50,43 @@ export function Header({ title, subtitle, instances, selectedInstance, onSelectI
               </span>
             )}
           </button>
-          {isOpen && (
+          {isNotifOpen && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-              <NotificationDropdown onClose={() => setIsOpen(false)} />
+              <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)} />
+              <NotificationDropdown onClose={() => setIsNotifOpen(false)} />
             </>
           )}
         </div>
 
-        <div className="w-10 h-10 rounded-full bg-(--color-bg-surface-hover) overflow-hidden flex items-center justify-center border border-(--color-border)">
-          <span className="text-(--color-primary) text-sm font-bold">A</span>
+        <div className="relative" ref={userMenuRef}>
+          <button
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="w-10 h-10 rounded-full bg-(--color-bg-surface-hover) overflow-hidden flex items-center justify-center border border-(--color-border) hover:border-(--color-primary) transition-colors cursor-pointer"
+          >
+            <span className="text-(--color-primary) text-sm font-bold">A</span>
+          </button>
+          {isUserMenuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)} />
+              <div className="absolute right-0 top-full mt-2 w-48 bg-(--color-bg-surface) border border-(--color-border) rounded-xl shadow-lg z-50 py-2 overflow-hidden">
+                <button
+                  onClick={() => { navigate('/settings'); setIsUserMenuOpen(false) }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-(--color-text-main) hover:bg-(--color-bg-surface-hover) transition-colors text-left"
+                >
+                  <SettingsIcon className="w-4 h-4 text-(--color-text-muted)" />
+                  {t('settings')}
+                </button>
+                <div className="border-t border-(--color-border) mx-3 my-1" />
+                <button
+                  onClick={() => { logout(); setIsUserMenuOpen(false) }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-(--color-status-exited) hover:bg-(--color-bg-surface-hover) transition-colors text-left"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {t('logout')}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>

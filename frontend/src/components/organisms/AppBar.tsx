@@ -10,8 +10,9 @@ export function AppBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand - Left */}
-          <div className="flex items-center gap-2">
-            <Activity className="h-6 w-6 text-primary" />
+          <div className="flex items-center gap-2.5">
+            <img src="/logo-dark.png" alt="Orchestrack" className="h-7 w-auto dark:block hidden" />
+            <img src="/logo-light.png" alt="Orchestrack" className="h-7 w-auto dark:hidden block" />
             <span className="text-xl font-bold tracking-tight">Orchestrack</span>
           </div>
 

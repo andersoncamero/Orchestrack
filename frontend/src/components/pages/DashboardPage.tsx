@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react'
 import { DashboardTemplate } from '../templates/DashboardTemplate'
 import { ClusterStatusPanel } from '../organisms/ClusterStatusPanel'
 import { InstanceStatusCards } from '../organisms/InstanceStatusCards'
@@ -13,7 +12,6 @@ export default function DashboardPage() {
   const { t } = useLanguage()
   const { instances, loading, error } = useInstances()
   const { samples: historySamples, loading: historyLoading, refetch: refetchHistory } = useConnectionHistory(720)
-  const [selectedInstance, setSelectedInstance] = useState('all')
 
   useWebSocket({
     room: 'dashboard',
@@ -23,11 +21,6 @@ export default function DashboardPage() {
       }
     }
   })
-
-  const displayedInstances = useMemo(() => {
-    if (selectedInstance === 'all') return instances
-    return instances.filter((i) => i.service_id === selectedInstance)
-  }, [instances, selectedInstance])
 
   if (loading) {
     return (
@@ -51,21 +44,18 @@ export default function DashboardPage() {
     <DashboardTemplate
       title={t('dashboard')}
       subtitle={t('globalSystemStatus')}
-      instances={instances}
-      selectedInstance={selectedInstance}
-      onSelectInstance={setSelectedInstance}
     >
       <div className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <ClusterStatusPanel instances={displayedInstances} />
+          <ClusterStatusPanel instances={instances} />
           <ConnectionHistoryChart samples={historySamples} loading={historyLoading} />
         </div>
 
         <div className="space-y-4">
           <h3 className="text-text-main font-semibold text-lg">
-            {t('monitoredMachines')} ({displayedInstances.length})
+            {t('monitoredMachines')} ({instances.length})
           </h3>
-          <InstanceStatusCards instances={displayedInstances} />
+          <InstanceStatusCards instances={instances} />
         </div>
       </div>
     </DashboardTemplate>

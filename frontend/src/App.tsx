@@ -16,6 +16,7 @@ import PackagesPage from './components/pages/PackagesPage'
 import SettingsPage from './components/pages/SettingsPage'
 import LoginPage from './components/pages/LoginPage'
 import SignupPage from './components/pages/SignupPage'
+import ForgotPasswordPage from './components/pages/ForgotPasswordPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, isLoading } = useAuth()
@@ -71,6 +72,14 @@ function AppRoutes() {
         element={
           <PublicRoute>
             <SignupPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPasswordPage />
           </PublicRoute>
         }
       />

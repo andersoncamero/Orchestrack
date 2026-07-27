@@ -1,15 +1,31 @@
-import { useState } from 'react'
-import { Bell, Globe, Info, LogOut, Search, Shield, Check } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Bell, Globe, Info, LogOut, Search, Shield, Check, Settings as SettingsIcon } from 'lucide-react'
 import { MainLayout } from '../templates/MainLayout'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useAuth } from '../../contexts/AuthContext'
 
 const tabs = ['General']
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
   const { language, setLanguage, t } = useLanguage()
+  const { logout } = useAuth()
+  const navigate = useNavigate()
   const [notifications, setNotifications] = useState(true)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const darkMode = theme === 'dark'
 
@@ -29,8 +45,35 @@ export default function SettingsPage() {
               className="bg-(--color-bg-surface) border border-(--color-border) text-(--color-text-main) text-sm rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-primary) w-48"
             />
           </div>
-          <div className="w-10 h-10 rounded-full bg-(--color-primary)/20 flex items-center justify-center border border-(--color-primary)/30">
-            <span className="text-(--color-primary) text-sm font-bold">A</span>
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="w-10 h-10 rounded-full bg-(--color-primary)/20 flex items-center justify-center border border-(--color-primary)/30 hover:border-(--color-primary) transition-colors cursor-pointer"
+            >
+              <span className="text-(--color-primary) text-sm font-bold">A</span>
+            </button>
+            {isUserMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 w-48 bg-(--color-bg-surface) border border-(--color-border) rounded-xl shadow-lg z-50 py-2 overflow-hidden">
+                  <button
+                    onClick={() => { navigate('/settings'); setIsUserMenuOpen(false) }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-(--color-text-main) hover:bg-(--color-bg-surface-hover) transition-colors text-left"
+                  >
+                    <SettingsIcon className="w-4 h-4 text-(--color-text-muted)" />
+                    {t('settings')}
+                  </button>
+                  <div className="border-t border-(--color-border) mx-3 my-1" />
+                  <button
+                    onClick={() => { logout(); setIsUserMenuOpen(false) }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-(--color-status-exited) hover:bg-(--color-bg-surface-hover) transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {t('logout')}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>

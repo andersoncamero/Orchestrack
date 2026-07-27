@@ -123,9 +123,10 @@ export function DeviceConnectionHistoryChart({
       }
     })
 
-    // Generar marcas del eje X espaciadas equidistantemente de forma absoluta
+    // Generar marcas del eje X espaciadas equidistantemente con formato según el rango
     const xTicks: { x: number; label: string }[] = []
-    const numTicks = 6
+    const numTicks = range === '24h' ? 7 : 6
+    const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
     for (let i = 0; i < numTicks; i++) {
       const tickTimestamp = minT + (i / (numTicks - 1)) * diffT
@@ -136,8 +137,13 @@ export function DeviceConnectionHistoryChart({
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const hr = String(date.getHours()).padStart(2, '0')
       const min = String(date.getMinutes()).padStart(2, '0')
+      const wd = weekDays[date.getDay()]
 
-      const label = `${day}/${month} ${hr}:${min}`
+      const label = range === '24h'
+        ? `${hr}:${min}`
+        : range === '7d'
+          ? `${wd} ${day}/${month}`
+          : `${day}/${month}`
       xTicks.push({ x, label })
     }
 
