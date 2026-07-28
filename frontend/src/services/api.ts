@@ -223,4 +223,21 @@ export const api = {
 
   getDeviceNetworkMetrics: (identifier: string, limit = 50) =>
     fetchJson<DeviceNetworkMetricsResponse>(`/api/v1/instances/${identifier}/metrics/network?limit=${limit}`),
+
+  getRetentionSetting: async () => {
+    return fetchJson<{ retention_days: number }>('/api/v1/system/retention')
+  },
+
+  updateRetentionSetting: async (retentionDays: number) => {
+    return fetchJson<{ retention_days: number; message: string }>('/api/v1/system/retention', {
+      method: 'PUT',
+      body: JSON.stringify({ retention_days: retentionDays }),
+    })
+  },
+
+  triggerMetricsCleanup: async () => {
+    return fetchJson<{ deleted_count: number; retention_days: number; message: string }>('/api/v1/system/retention/cleanup', {
+      method: 'POST',
+    })
+  },
 }

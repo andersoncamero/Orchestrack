@@ -33,6 +33,11 @@ type Repository interface {
 	InsertDeviceNetworkMetric(ctx context.Context, metric *models.DeviceNetworkMetric) error
 	ListDeviceNetworkMetrics(ctx context.Context, deviceID string, limit int) ([]*models.DeviceNetworkMetric, error)
 
+	// Configuración del Sistema y Purga
+	GetSystemSetting(ctx context.Context, key string) (string, error)
+	SetSystemSetting(ctx context.Context, key, value string) error
+	CleanupOldDeviceNetworkMetrics(ctx context.Context, retentionDays int) (int64, error)
+
 	// Tokens de Registro
 	CreateRegistrationToken(ctx context.Context, token *models.RegistrationToken) error
 	GetRegistrationToken(ctx context.Context, tokenStr string) (*models.RegistrationToken, error)
@@ -132,6 +137,21 @@ func InsertDeviceNetworkMetric(ctx context.Context, metric *models.DeviceNetwork
 // ListDeviceNetworkMetrics delega en la implementación inyectada.
 func ListDeviceNetworkMetrics(ctx context.Context, deviceID string, limit int) ([]*models.DeviceNetworkMetric, error) {
 	return implementation.ListDeviceNetworkMetrics(ctx, deviceID, limit)
+}
+
+// GetSystemSetting delega en la implementación inyectada.
+func GetSystemSetting(ctx context.Context, key string) (string, error) {
+	return implementation.GetSystemSetting(ctx, key)
+}
+
+// SetSystemSetting delega en la implementación inyectada.
+func SetSystemSetting(ctx context.Context, key, value string) error {
+	return implementation.SetSystemSetting(ctx, key, value)
+}
+
+// CleanupOldDeviceNetworkMetrics delega en la implementación inyectada.
+func CleanupOldDeviceNetworkMetrics(ctx context.Context, retentionDays int) (int64, error) {
+	return implementation.CleanupOldDeviceNetworkMetrics(ctx, retentionDays)
 }
 
 // Close cierra la implementación inyectada.

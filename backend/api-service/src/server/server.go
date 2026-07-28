@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -93,6 +94,27 @@ func NewServer(config *util.Config, logger *slog.Logger) (ports.Server, error) {
 		hub:               hub,
 		router:            mux.NewRouter(),
 	}
+
+	// Purga periódica de métricas de red antiguas según la retención configurada (cada 1 hora).
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			val, err := repository.GetSystemSetting(context.Background(), "metrics_retention_days")
+			days := 7
+			if err == nil && val != "" {
+				if parsed, err := strconv.Atoi(val); err == nil && parsed > 0 {
+					days = parsed
+				}
+			}
+			deleted, err := repository.CleanupOldDeviceNetworkMetrics(context.Background(), days)
+			if err != nil {
+				logger.Warn("failed to auto-cleanup old device network metrics", "error", err)
+			} else if deleted > 0 {
+				logger.Info("auto-cleaned old device network metrics", "deleted_rows", deleted, "retention_days", days)
+			}
+		}
+	}()
 
 	// Cleanup de instancias inactivas cada 30 segundos.
 	go func() {

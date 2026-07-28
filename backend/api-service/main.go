@@ -75,6 +75,9 @@ func BindRoutes(s ports.Server, r *mux.Router) {
 	protected.HandleFunc("/instances/history", handlers.ConnectionHistoryHandler(s)).Methods(http.MethodGet)
 	protected.HandleFunc("/images/search", handlers.SearchImagesHandler(s)).Methods(http.MethodGet)
 	protected.HandleFunc("/devices/tokens", handlers.GenerateTokenHandler(s)).Methods(http.MethodPost)
+	protected.HandleFunc("/system/retention", handlers.GetRetentionSettingHandler(s)).Methods(http.MethodGet)
+	protected.HandleFunc("/system/retention", handlers.UpdateRetentionSettingHandler(s)).Methods(http.MethodPut)
+	protected.HandleFunc("/system/retention/cleanup", handlers.TriggerMetricsCleanupHandler(s)).Methods(http.MethodPost)
 	protected.HandleFunc("/ws", s.Hub().HandleWebSocket)
 
 	instances := protected.PathPrefix("/instances/{identifier}").Subrouter()

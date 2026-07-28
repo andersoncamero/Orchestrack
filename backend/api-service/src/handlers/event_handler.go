@@ -19,7 +19,8 @@ import (
 )
 
 var (
-	sincronizadosInicio sync.Map
+	sincronizadosInicio     sync.Map
+	lastNetworkMetricSaveMap sync.Map
 )
 
 // SubscribeContainerEvents se suscribe a eventos de contenedores y heartbeats.
@@ -242,19 +243,36 @@ func subscribeHeartbeats(registry *cache.Registry, history *cache.ConnectionHist
 			}
 		}
 
-		// Persistir métricas de red e inspeccionar picos de latencia RTT (DoD T-007 y T-008)
+		// Persistir métricas de red únicamente cada 2 minutos por servidor para optimizar espacio en BD (DoD T-007 y T-008)
 		if heartbeat.HostMetrics != nil {
-			netMetric := &models.DeviceNetworkMetric{
-				DeviceID:          heartbeat.ServiceId,
-				RxBytesPerSec:     heartbeat.HostMetrics.RxBytesPerSec,
-				TxBytesPerSec:     heartbeat.HostMetrics.TxBytesPerSec,
-				PacketsRecvPerSec: heartbeat.HostMetrics.PacketsRecvPerSec,
-				PacketsSentPerSec: heartbeat.HostMetrics.PacketsSentPerSec,
-				RttMs:             heartbeat.HostMetrics.RttMs,
-				RecordedAt:        time.Unix(heartbeat.Timestamp, 0),
+			now := time.Now()
+			shouldSave := false
+			if val, ok := lastNetworkMetricSaveMap.Load(heartbeat.ServiceId); ok {
+				if lastTime, ok := val.(time.Time); ok {
+					if now.Sub(lastTime) >= 2*time.Minute {
+						shouldSave = true
+					}
+				} else {
+					shouldSave = true
+				}
+			} else {
+				shouldSave = true
 			}
-			if err := repository.InsertDeviceNetworkMetric(context.Background(), netMetric); err != nil {
-				logger.Warn("failed to insert device network metric", "service_id", heartbeat.ServiceId, "error", err)
+
+			if shouldSave {
+				lastNetworkMetricSaveMap.Store(heartbeat.ServiceId, now)
+				netMetric := &models.DeviceNetworkMetric{
+					DeviceID:          heartbeat.ServiceId,
+					RxBytesPerSec:     heartbeat.HostMetrics.RxBytesPerSec,
+					TxBytesPerSec:     heartbeat.HostMetrics.TxBytesPerSec,
+					PacketsRecvPerSec: heartbeat.HostMetrics.PacketsRecvPerSec,
+					PacketsSentPerSec: heartbeat.HostMetrics.PacketsSentPerSec,
+					RttMs:             heartbeat.HostMetrics.RttMs,
+					RecordedAt:        time.Unix(heartbeat.Timestamp, 0),
+				}
+				if err := repository.InsertDeviceNetworkMetric(context.Background(), netMetric); err != nil {
+					logger.Warn("failed to insert device network metric", "service_id", heartbeat.ServiceId, "error", err)
+				}
 			}
 
 			// Disparar alerta automática si la latencia RTT supera los 500ms (DoD T-007.4)

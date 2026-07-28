@@ -22,7 +22,7 @@ func NewPostgresRepository(databaseURL string) (*PostgresRepository, error) {
 		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
 	}
 
-	if err := db.AutoMigrate(&models.User{}, &models.Device{}, &models.Event{}, &models.RegistrationToken{}, &models.ContainerEvent{}, &models.Alert{}, &models.DeviceNetworkMetric{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Device{}, &models.Event{}, &models.RegistrationToken{}, &models.ContainerEvent{}, &models.Alert{}, &models.DeviceNetworkMetric{}, &models.SystemSetting{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate models: %w", err)
 	}
 
@@ -189,4 +189,36 @@ func (repo *PostgresRepository) ListDeviceNetworkMetrics(ctx context.Context, de
 		Limit(limit).
 		Find(&metrics).Error
 	return metrics, err
+}
+
+// GetSystemSetting busca una configuración del sistema por clave.
+func (repo *PostgresRepository) GetSystemSetting(ctx context.Context, key string) (string, error) {
+	var setting models.SystemSetting
+	if err := repo.db.WithContext(ctx).First(&setting, "key = ?", key).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return "", nil
+		}
+		return "", err
+	}
+	return setting.Value, nil
+}
+
+// SetSystemSetting guarda o actualiza una configuración del sistema por clave.
+func (repo *PostgresRepository) SetSystemSetting(ctx context.Context, key, value string) error {
+	setting := models.SystemSetting{
+		Key:       key,
+		Value:     value,
+		UpdatedAt: time.Now(),
+	}
+	return repo.db.WithContext(ctx).Save(&setting).Error
+}
+
+// CleanupOldDeviceNetworkMetrics elimina métricas de red antiguas según los días de retención especificados.
+func (repo *PostgresRepository) CleanupOldDeviceNetworkMetrics(ctx context.Context, retentionDays int) (int64, error) {
+	if retentionDays <= 0 {
+		retentionDays = 7 // Valor por defecto seguro
+	}
+	cutoff := time.Now().AddDate(0, 0, -retentionDays)
+	res := repo.db.WithContext(ctx).Where("recorded_at < ?", cutoff).Delete(&models.DeviceNetworkMetric{})
+	return res.RowsAffected, res.Error
 }

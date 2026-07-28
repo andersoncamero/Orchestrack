@@ -135,3 +135,78 @@ func GetDeviceNetworkMetricsHandler(s ports.Server) http.HandlerFunc {
 		})
 	}
 }
+
+// GetRetentionSettingHandler devuelve los días de retención de métricas configurados en el sistema.
+func GetRetentionSettingHandler(s ports.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		val, err := repository.GetSystemSetting(r.Context(), "metrics_retention_days")
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		days := 7
+		if val != "" {
+			if parsed, err := strconv.Atoi(val); err == nil && parsed > 0 {
+				days = parsed
+			}
+		}
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"retention_days": days,
+		})
+	}
+}
+
+// UpdateRetentionSettingHandler actualiza los días de retención de métricas de red.
+func UpdateRetentionSettingHandler(s ports.Server) http.HandlerFunc {
+	type Request struct {
+		RetentionDays int `json:"retention_days"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req Request
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeError(w, http.StatusBadRequest, "invalid request body")
+			return
+		}
+		if req.RetentionDays <= 0 || req.RetentionDays > 365 {
+			writeError(w, http.StatusBadRequest, "retention_days must be between 1 and 365")
+			return
+		}
+		if err := repository.SetSystemSetting(r.Context(), "metrics_retention_days", strconv.Itoa(req.RetentionDays)); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"retention_days": req.RetentionDays,
+			"message":        "Retention policy updated successfully",
+		})
+	}
+}
+
+// TriggerMetricsCleanupHandler purga de forma manual e inmediata los registros de métricas antiguos.
+func TriggerMetricsCleanupHandler(s ports.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		val, err := repository.GetSystemSetting(r.Context(), "metrics_retention_days")
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		days := 7
+		if val != "" {
+			if parsed, err := strconv.Atoi(val); err == nil && parsed > 0 {
+				days = parsed
+			}
+		}
+
+		deletedCount, err := repository.CleanupOldDeviceNetworkMetrics(r.Context(), days)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"deleted_count":  deletedCount,
+			"retention_days": days,
+			"message":        "Metrics cleanup completed successfully",
+		})
+	}
+}
