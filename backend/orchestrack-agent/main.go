@@ -109,6 +109,12 @@ func main() {
 	repository.SetRepository(containerRepo)
 	logger.Info("cliente Docker listo")
 
+	// Watcher de eventos en tiempo real del daemon Docker (die, oom, kill,
+	// health_status, restart, destroy) publicados en NATS.
+	eventsWatcher := docker.NewEventsWatcher(dockerClient, config.ServiceID, logger)
+	watcherCtx, stopWatcher := context.WithCancel(context.Background())
+	go eventsWatcher.Run(watcherCtx)
+
 	commandHandler, err := handlers.NewNATSCommandHandler(config.ServiceID, config.Hostname, logger)
 	if err != nil {
 		logger.Error("error al crear el manejador de comandos", "error", err)
@@ -131,6 +137,7 @@ func main() {
 
 	<-sigCh
 	logger.Info("apagando orchestrack-agent de forma segura")
+	stopWatcher()
 	stopHeartbeat()
 	commandHandler.Close()
 }

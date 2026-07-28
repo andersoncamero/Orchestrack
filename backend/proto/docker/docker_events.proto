@@ -47,6 +47,19 @@ message ContainerRemovedEvent {
   int64 timestamp = 4;
 }
 
+// ContainerEvent es un evento en tiempo real capturado del stream nativo
+// de eventos de Docker Engine (die, oom, kill, health_status, restart, destroy).
+message ContainerEvent {
+  string service_id = 1;
+  string container_id = 2;
+  string container_name = 3;
+  string image = 4;
+  string event_type = 5;
+  int32 exit_code = 6;
+  string reason = 7;
+  int64 timestamp = 8;
+}
+
 message AgentStatusEvent {
   string service_id = 1;
   string hostname = 2;
