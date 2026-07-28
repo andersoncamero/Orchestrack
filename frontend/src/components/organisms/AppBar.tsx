@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Activity, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 
 export function AppBar() {

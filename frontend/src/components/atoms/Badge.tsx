@@ -16,15 +16,19 @@ const stateStyles: Record<string, string> = {
   restarting: 'bg-(--color-status-warning-subtle) text-(--color-status-warning) border-(--color-status-warning)/30',
   warning: 'bg-(--color-status-warning-subtle) text-(--color-status-warning) border-(--color-status-warning)/30',
 
-  // Error / down / dead
+  // Error / down / dead / unhealthy / crash / oom
   exited: 'bg-(--color-status-exited-subtle) text-(--color-status-exited) border-(--color-status-exited)/30',
   dead: 'bg-(--color-status-exited-subtle) text-(--color-status-exited) border-(--color-status-exited)/30',
   down: 'bg-(--color-status-exited-subtle) text-(--color-status-exited) border-(--color-status-exited)/30',
   error: 'bg-(--color-status-exited-subtle) text-(--color-status-exited) border-(--color-status-exited)/30',
+  unhealthy: 'bg-(--color-status-exited-subtle) text-(--color-status-exited) border-(--color-status-exited)/30',
+  crashloopbackoff: 'bg-(--color-status-exited-subtle) text-(--color-status-exited) border-(--color-status-exited)/30',
+  oomkilled: 'bg-(--color-status-exited-subtle) text-(--color-status-exited) border-(--color-status-exited)/30',
 
-  // Info / created / removing / neutral
+  // Info / created / removing / neutral / stopped
   created: 'bg-(--color-status-info-subtle) text-(--color-status-info) border-(--color-status-info)/30',
   removing: 'bg-(--color-status-neutral-subtle) text-(--color-status-neutral) border-(--color-status-neutral)/30',
+  stopped: 'bg-(--color-status-neutral-subtle) text-(--color-status-neutral) border-(--color-status-neutral)/30',
 
   // Host connectivity
   online: 'bg-(--color-status-running-subtle) text-(--color-status-running) border-(--color-status-running)/30',
@@ -43,6 +47,10 @@ const stateTranslationKeys: Record<string, string> = {
   dead: 'stateDead',
   down: 'stateDown',
   error: 'stateError',
+  unhealthy: 'stateUnhealthy',
+  crashloopbackoff: 'stateCrashLoopBackOff',
+  oomkilled: 'stateOOMKilled',
+  stopped: 'stateStopped',
   created: 'stateCreated',
   removing: 'stateRemoving',
   online: 'stateRunning',

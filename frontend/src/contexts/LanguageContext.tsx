@@ -213,6 +213,24 @@ const translations: Record<Language, Translations> = {
     stateDown: 'Inactivo',
     stateError: 'Error',
     stateWarning: 'Advertencia',
+    stateStopped: 'Detenido',
+    stateUnhealthy: 'No saludable',
+    stateCrashLoopBackOff: 'CrashLoopBackOff',
+    stateOOMKilled: 'OOMKilled',
+
+    // Container detail panel
+    containerDetails: 'Detalles del contenedor',
+    generalInfo: 'Información General',
+    events: 'Eventos',
+    logs: 'Logs',
+    noEvents: 'No hay eventos',
+    noLogs: 'No hay logs disponibles',
+    copyLogs: 'Copiar logs',
+    downloadLogs: 'Descargar logs',
+    autoScroll: 'Scroll automático',
+    showTimestamps: 'Mostrar timestamps',
+    refresh: 'Refrescar',
+    lines: 'líneas',
 
     // Navegación runtime
     dockerContainers: 'Docker Containers',
@@ -508,6 +526,24 @@ const translations: Record<Language, Translations> = {
     stateDown: 'Down',
     stateError: 'Error',
     stateWarning: 'Warning',
+    stateStopped: 'Stopped',
+    stateUnhealthy: 'Unhealthy',
+    stateCrashLoopBackOff: 'CrashLoopBackOff',
+    stateOOMKilled: 'OOMKilled',
+
+    // Container detail panel
+    containerDetails: 'Container Details',
+    generalInfo: 'General Information',
+    events: 'Events',
+    logs: 'Logs',
+    noEvents: 'No events',
+    noLogs: 'No logs available',
+    copyLogs: 'Copy logs',
+    downloadLogs: 'Download logs',
+    autoScroll: 'Auto scroll',
+    showTimestamps: 'Show timestamps',
+    refresh: 'Refresh',
+    lines: 'lines',
 
     // Runtime navigation
     dockerContainers: 'Docker Containers',

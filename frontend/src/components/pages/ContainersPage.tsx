@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { RotateCcw, Search, Trash2, Server, Boxes, Eye, ArrowLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+
 import { MainLayout } from '../templates/MainLayout'
 import { Spinner } from '../atoms/Spinner'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { ConfirmModal } from '../molecules/ConfirmModal'
+import { ContainerDetailPanel } from '../organisms/ContainerDetailPanel'
 import { useInstances } from '../../hooks/useInstances'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebSocket } from '../../hooks/useWebSocket'
@@ -27,6 +28,7 @@ export default function ContainersPage() {
   const [stateFilter, setStateFilter] = useState('all')
   const [containerToRemove, setContainerToRemove] = useState<ContainerWithHost | null>(null)
   const [removeLoading, setRemoveLoading] = useState(false)
+  const [selectedContainer, setSelectedContainer] = useState<ContainerWithHost | null>(null)
 
   const selectedInstanceData = instances.find((i) => i.service_id === selectedInstance) || null
 
@@ -71,6 +73,18 @@ export default function ContainersPage() {
         }
         case 'container.removed': {
           return prev.filter((c) => c.id !== event.payload.id)
+        }
+        case 'container.event': {
+          const id = event.payload.id as string
+          const newState = event.payload.state as string | undefined
+          return prev.map((c) => {
+            if (c.service_id !== serviceId || c.id !== id) return c
+            return {
+              ...c,
+              state: newState || c.state,
+              status: newState || c.status,
+            }
+          })
         }
         default:
           return prev
@@ -269,14 +283,15 @@ export default function ContainersPage() {
                         const instance = instances.find((i) => i.service_id === container.service_id)
                         const hostname = instance ? instance.hostname : container.hostname || 'Desconocido'
                         return (
-                          <tr key={container.id} className="hover:bg-(--color-bg-surface-hover)/50 transition-colors">
+                          <tr
+                            key={container.id}
+                            className="hover:bg-(--color-bg-surface-hover)/50 transition-colors cursor-pointer"
+                            onClick={() => setSelectedContainer(container)}
+                          >
                             <td className="px-6 py-4 whitespace-nowrap text-(--color-text-main) font-medium max-w-xs truncate" title={container.name || container.id}>
-                              <Link
-                                to={`/containers/docker/${container.service_id}/${container.id}`}
-                                className="hover:text-(--color-primary) transition-colors"
-                              >
+                              <span className="hover:text-(--color-primary) transition-colors">
                                 {container.name || container.id.slice(0, 12)}
-                              </Link>
+                              </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-(--color-text-muted) max-w-xs truncate" title={container.image}>
                               {container.image}
@@ -291,7 +306,10 @@ export default function ContainersPage() {
                               <div className="flex items-center gap-2">
                                 {!isRunning && (
                                   <button
-                                    onClick={() => handleAction('start', container)}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleAction('start', container)
+                                    }}
                                     className="px-3 py-1.5 bg-(--color-primary) hover:bg-(--color-primary-hover) text-white text-sm rounded-lg transition-colors"
                                   >
                                     {t('start')}
@@ -299,21 +317,30 @@ export default function ContainersPage() {
                                 )}
                                 {isRunning && (
                                   <button
-                                    onClick={() => handleAction('stop', container)}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleAction('stop', container)
+                                    }}
                                     className="px-3 py-1.5 bg-(--color-status-exited) hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
                                   >
                                     {t('stop')}
                                   </button>
                                 )}
                                 <button
-                                  onClick={() => handleAction('restart', container)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleAction('restart', container)
+                                  }}
                                   className="p-1.5 bg-(--color-bg-surface-hover) hover:bg-(--color-border) text-(--color-text-main) rounded-lg transition-colors"
                                   title={t('restart')}
                                 >
                                   <RotateCcw className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleRemove(container)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleRemove(container)
+                                  }}
                                   className="p-1.5 bg-(--color-status-exited-subtle) hover:bg-(--color-status-exited)/20 text-(--color-status-exited) rounded-lg transition-colors"
                                   title={t('remove')}
                                 >
@@ -375,6 +402,15 @@ export default function ContainersPage() {
           </div>
         )}
       </main>
+
+      {selectedContainer && (
+        <ContainerDetailPanel
+          container={selectedContainer}
+          identifier={selectedInstance}
+          isOpen={selectedContainer !== null}
+          onClose={() => setSelectedContainer(null)}
+        />
+      )}
 
       <ConfirmModal
         isOpen={containerToRemove !== null}

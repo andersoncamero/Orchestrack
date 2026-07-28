@@ -71,7 +71,23 @@ export interface Container {
   platform: string
 }
 
-export type ContainerState = 'running' | 'exited' | 'created' | 'paused' | 'restarting' | 'removing' | 'dead'
+export type ContainerState = 'running' | 'exited' | 'created' | 'paused' | 'restarting' | 'removing' | 'dead' | 'stopped' | 'unhealthy' | 'crashloopbackoff' | 'oomkilled'
+
+export interface ContainerEvent {
+  id: string
+  type: string
+  message: string
+  timestamp: number
+  container_id: string
+  container_name: string
+}
+
+export interface ContainerLogOptions {
+  tail?: number
+  timestamps?: boolean
+  stdout?: boolean
+  stderr?: boolean
+}
 
 export interface ImageSummary {
   id: string

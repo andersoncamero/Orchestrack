@@ -1,4 +1,4 @@
-import type { ConnectionHistoryResponse, Container, ContainerSummary, HostMetrics, ImageSearchResponse, ImageSummary, Instance, ListPackagesResponse, RefreshPackagesResponse, RemovePackagesResponse, SearchProcessesResponse, SystemInfo, UpgradePackagesResponse, DeviceConnectionHistoryResponse } from '../types'
+import type { ConnectionHistoryResponse, Container, ContainerEvent, ContainerSummary, HostMetrics, ImageSearchResponse, ImageSummary, Instance, ListPackagesResponse, RefreshPackagesResponse, RemovePackagesResponse, SearchProcessesResponse, SystemInfo, UpgradePackagesResponse, DeviceConnectionHistoryResponse } from '../types'
 import { getToken } from '../contexts/AuthContext'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
@@ -85,6 +85,22 @@ export const api = {
 
   getContainer: (identifier: string, id: string) =>
     fetchJson<{ container: Container }>(`/api/v1/instances/${identifier}/containers/${id}`),
+
+  getContainerLogs: (identifier: string, id: string, opts?: { tail?: number; timestamps?: boolean; stdout?: boolean; stderr?: boolean }) => {
+    const params = new URLSearchParams()
+    if (opts?.tail !== undefined) params.set('tail', String(opts.tail))
+    if (opts?.timestamps !== undefined) params.set('timestamps', String(opts.timestamps))
+    if (opts?.stdout !== undefined) params.set('stdout', String(opts.stdout))
+    if (opts?.stderr !== undefined) params.set('stderr', String(opts.stderr))
+    return fetchJson<string[]>(`/api/v1/instances/${identifier}/containers/${id}/logs?${params.toString()}`)
+  },
+
+  getContainerEvents: (identifier: string, id: string, opts?: { limit?: number; offset?: number }) => {
+    const params = new URLSearchParams()
+    if (opts?.limit !== undefined) params.set('limit', String(opts.limit))
+    if (opts?.offset !== undefined) params.set('offset', String(opts.offset))
+    return fetchJson<{ events: ContainerEvent[]; limit: number; offset: number }>(`/api/v1/instances/${identifier}/containers/${id}/events?${params.toString()}`)
+  },
 
   createContainer: (identifier: string, body: Partial<Container>) =>
     fetchJson<{ id: string; name: string; warnings: string[] }>(`/api/v1/instances/${identifier}/containers`, {
