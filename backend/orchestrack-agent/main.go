@@ -109,6 +109,13 @@ func main() {
 	repository.SetRepository(containerRepo)
 	logger.Info("cliente Docker listo")
 
+	if err := system.EnsureDedicatedUser(logger); err != nil {
+		logger.Warn("failed to ensure dedicated user", "error", err)
+	}
+	if err := system.ConfigureSudoers(system.DetectPackageManager(), logger); err != nil {
+		logger.Warn("failed to configure sudoers", "error", err)
+	}
+
 	// Watcher de eventos en tiempo real del daemon Docker (die, oom, kill,
 	// health_status, restart, destroy) publicados en NATS.
 	eventsWatcher := docker.NewEventsWatcher(dockerClient, config.ServiceID, logger)

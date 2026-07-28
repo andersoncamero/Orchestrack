@@ -207,7 +207,12 @@ func runPrivilegedCommand(ctx context.Context, name string, args ...string) (str
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
-	sudoArgs := append([]string{"-n", name}, args...)
+	var sudoArgs []string
+	if runtime.GOOS == "linux" && IsDedicatedUserConfigured() {
+		sudoArgs = append([]string{"-n", "-u", dedicatedUser, name}, args...)
+	} else {
+		sudoArgs = append([]string{"-n", name}, args...)
+	}
 	cmd := exec.CommandContext(ctx, "sudo", sudoArgs...)
 	out, sudoRunErr := cmd.CombinedOutput()
 	sudoOutput := string(out)
