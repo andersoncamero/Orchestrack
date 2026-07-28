@@ -172,6 +172,26 @@ export function DeviceConnectionHistoryChart({
   const axisStroke = isDark ? '#64748b' : '#94a3b8'
   const tickFill = isDark ? '#94a3b8' : '#475569'
 
+  // Renderizado personalizado de puntos: Verde en Activo (1), Rojo en Inactivo (0)
+  const renderCustomDot = (props: any) => {
+    const { cx, cy, payload } = props
+    if (cx === undefined || cy === undefined || !payload) return null
+    const isOnline = payload.statusVal === 1
+    const color = isOnline ? '#10b981' : '#ef4444'
+
+    return (
+      <circle
+        key={`dot-${payload.timestamp}-${cx}`}
+        cx={cx}
+        cy={cy}
+        r={4}
+        fill={color}
+        stroke={isDark ? '#0f172a' : '#ffffff'}
+        strokeWidth={2}
+      />
+    )
+  }
+
   if (loading) {
     return (
       <div className="bg-(--color-bg-surface) border border-(--color-border) rounded-xl p-6 flex flex-col items-center justify-center min-h-[180px]">
@@ -213,7 +233,7 @@ export function DeviceConnectionHistoryChart({
         </div>
       </div>
 
-      {/* Gráfico Recharts AreaChart (Step) */}
+      {/* Gráfico Recharts AreaChart (Step) con Gradiente Verde/Rojo */}
       {chartData.length === 0 ? (
         <div className="flex items-center justify-center min-h-[120px] border border-dashed border-(--color-border) rounded-xl bg-(--color-bg-base)/30">
           <p className="text-(--color-text-muted) text-sm flex items-center gap-2">
@@ -226,7 +246,16 @@ export function DeviceConnectionHistoryChart({
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
                 <defs>
-                  <linearGradient id="connectionGradient" x1="0" y1="0" x2="0" y2="1">
+                  {/* Gradiente del Trazo: Verde en Activo (arriba=1), Rojo en Inactivo (abajo=0) */}
+                  <linearGradient id="statusStrokeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                    <stop offset="15%" stopColor="#10b981" stopOpacity={1} />
+                    <stop offset="85%" stopColor="#ef4444" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity={1} />
+                  </linearGradient>
+
+                  {/* Gradiente del Área Verde */}
+                  <linearGradient id="activeAreaGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
                     <stop offset="100%" stopColor="#10b981" stopOpacity={0.02} />
                   </linearGradient>
@@ -248,10 +277,11 @@ export function DeviceConnectionHistoryChart({
                 <Area
                   type="stepAfter"
                   dataKey="statusVal"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  fill="url(#connectionGradient)"
-                  activeDot={{ r: 6, fill: '#10b981', stroke: isDark ? '#0f172a' : '#ffffff', strokeWidth: 2 }}
+                  stroke="url(#statusStrokeGradient)"
+                  strokeWidth={2.5}
+                  fill="url(#activeAreaGradient)"
+                  dot={renderCustomDot}
+                  activeDot={{ r: 7, stroke: isDark ? '#0f172a' : '#ffffff', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -262,10 +292,10 @@ export function DeviceConnectionHistoryChart({
       {/* Leyenda e Instrucciones */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-(--color-text-muted) pt-1">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 font-medium text-emerald-500">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> Conectado (Activo)
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 font-medium text-rose-500">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" /> Desconectado (Inactivo)
           </span>
         </div>
