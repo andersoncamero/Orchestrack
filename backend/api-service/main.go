@@ -101,6 +101,9 @@ func BindRoutes(s ports.Server, r *mux.Router) {
 	instances.HandleFunc("/system/packages/upgrade", handlers.UpgradePackagesHandler(s)).Methods(http.MethodPost)
 	instances.HandleFunc("/system/packages/remove", handlers.RemovePackagesHandler(s)).Methods(http.MethodPost)
 
+	// Network metrics route (DoD T-007.3).
+	instances.HandleFunc("/metrics/network", handlers.GetDeviceNetworkMetricsHandler(s)).Methods(http.MethodGet)
+
 	// Process routes.
 	instances.HandleFunc("/processes/search", handlers.SearchProcessesHandler(s)).Methods(http.MethodGet)
 }

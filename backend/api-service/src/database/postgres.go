@@ -22,7 +22,7 @@ func NewPostgresRepository(databaseURL string) (*PostgresRepository, error) {
 		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
 	}
 
-	if err := db.AutoMigrate(&models.User{}, &models.Device{}, &models.Event{}, &models.RegistrationToken{}, &models.ContainerEvent{}, &models.Alert{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Device{}, &models.Event{}, &models.RegistrationToken{}, &models.ContainerEvent{}, &models.Alert{}, &models.DeviceNetworkMetric{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate models: %w", err)
 	}
 
@@ -170,4 +170,23 @@ func (repo *PostgresRepository) UpdateRegistrationToken(ctx context.Context, tok
 // DeleteExpiredRegistrationTokens elimina los tokens que han expirado o ya han sido usados.
 func (repo *PostgresRepository) DeleteExpiredRegistrationTokens(ctx context.Context) error {
 	return repo.db.WithContext(ctx).Where("expires_at < ? OR used = ?", time.Now(), true).Delete(&models.RegistrationToken{}).Error
+}
+
+// InsertDeviceNetworkMetric guarda una muestra de métricas de red y latencia en PostgreSQL.
+func (repo *PostgresRepository) InsertDeviceNetworkMetric(ctx context.Context, metric *models.DeviceNetworkMetric) error {
+	return repo.db.WithContext(ctx).Create(metric).Error
+}
+
+// ListDeviceNetworkMetrics consulta el historial de métricas de red y latencia por servidor.
+func (repo *PostgresRepository) ListDeviceNetworkMetrics(ctx context.Context, deviceID string, limit int) ([]*models.DeviceNetworkMetric, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	var metrics []*models.DeviceNetworkMetric
+	err := repo.db.WithContext(ctx).
+		Where("device_id = ?", deviceID).
+		Order("recorded_at DESC").
+		Limit(limit).
+		Find(&metrics).Error
+	return metrics, err
 }

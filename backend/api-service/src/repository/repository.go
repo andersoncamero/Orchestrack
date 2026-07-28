@@ -29,6 +29,10 @@ type Repository interface {
 	// Alertas
 	InsertAlert(ctx context.Context, alert *models.Alert) error
 
+	// Métricas de Red
+	InsertDeviceNetworkMetric(ctx context.Context, metric *models.DeviceNetworkMetric) error
+	ListDeviceNetworkMetrics(ctx context.Context, deviceID string, limit int) ([]*models.DeviceNetworkMetric, error)
+
 	// Tokens de Registro
 	CreateRegistrationToken(ctx context.Context, token *models.RegistrationToken) error
 	GetRegistrationToken(ctx context.Context, tokenStr string) (*models.RegistrationToken, error)
@@ -118,6 +122,16 @@ func UpdateRegistrationToken(ctx context.Context, token *models.RegistrationToke
 // DeleteExpiredRegistrationTokens delega en la implementación inyectada.
 func DeleteExpiredRegistrationTokens(ctx context.Context) error {
 	return implementation.DeleteExpiredRegistrationTokens(ctx)
+}
+
+// InsertDeviceNetworkMetric delega en la implementación inyectada.
+func InsertDeviceNetworkMetric(ctx context.Context, metric *models.DeviceNetworkMetric) error {
+	return implementation.InsertDeviceNetworkMetric(ctx, metric)
+}
+
+// ListDeviceNetworkMetrics delega en la implementación inyectada.
+func ListDeviceNetworkMetrics(ctx context.Context, deviceID string, limit int) ([]*models.DeviceNetworkMetric, error) {
+	return implementation.ListDeviceNetworkMetrics(ctx, deviceID, limit)
 }
 
 // Close cierra la implementación inyectada.
