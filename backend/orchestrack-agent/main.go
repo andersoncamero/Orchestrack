@@ -232,6 +232,7 @@ func startHeartbeat(serviceID, hostname string, logger *slog.Logger) func() {
 		}
 	}
 
+	metrics.SetLastRttMs(0.5) // Valor inicial para el primer heartbeat
 	publish() // primer heartbeat inmediato
 
 	go func() {

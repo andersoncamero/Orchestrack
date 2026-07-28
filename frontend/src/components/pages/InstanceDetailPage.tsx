@@ -7,11 +7,13 @@ import { DeviceConnectionHistoryChart } from '../organisms/DeviceConnectionHisto
 import type { TimeRange } from '../organisms/DeviceConnectionHistoryChart'
 import { ResourceBarChart } from '../organisms/ResourceBarChart'
 import { InstanceAlertsTable } from '../organisms/InstanceAlertsTable'
+import { NetworkMetricsChart } from '../organisms/NetworkMetricsChart'
 import { useInstances } from '../../hooks/useInstances'
 import { useState, useMemo, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import { useConnectionHistory } from '../../hooks/useConnectionHistory'
+import { useNetworkMetrics } from '../../hooks/useNetworkMetrics'
 import { formatBytes, formatDuration, timeAgo } from '../../utils/time'
 import type { Instance, ConnectionHistorySample, DeviceConnectionEvent } from '../../types'
 
@@ -20,6 +22,7 @@ export default function InstanceDetailPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
   const { instances, loading: loadingInstances } = useInstances()
+  const { history: netHistory, latestMetrics: netLatest, loading: loadingNet } = useNetworkMetrics(service_id)
   
   const [localInstance, setLocalInstance] = useState<Instance | null>(null)
   const [range, setRange] = useState<TimeRange>('24h')
@@ -222,6 +225,15 @@ export default function InstanceDetailPage() {
           range={range}
           onRangeChange={setRange}
           currentStatus={instance.status}
+        />
+
+        {/* Network Metrics & RTT Latency Section (DoD T-009) */}
+        <NetworkMetricsChart
+          metrics={netHistory}
+          loading={loadingNet}
+          latestRttMs={netLatest?.rtt_ms || metrics?.rtt_ms || 0}
+          latestRxBytesPerSec={netLatest?.rx_bytes_per_sec || metrics?.rx_bytes_per_sec || 0}
+          latestTxBytesPerSec={netLatest?.tx_bytes_per_sec || metrics?.tx_bytes_per_sec || 0}
         />
 
         {/* Alerts & Resource Usage Grid */}

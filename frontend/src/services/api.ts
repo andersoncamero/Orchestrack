@@ -1,4 +1,4 @@
-import type { ConnectionHistoryResponse, Container, ContainerEvent, ContainerSummary, HostMetrics, ImageSearchResponse, ImageSummary, Instance, ListPackagesResponse, RefreshPackagesResponse, RemovePackagesResponse, SearchProcessesResponse, SystemInfo, UpgradePackagesResponse, DeviceConnectionHistoryResponse } from '../types'
+import type { ConnectionHistoryResponse, Container, ContainerEvent, ContainerSummary, HostMetrics, ImageSearchResponse, ImageSummary, Instance, ListPackagesResponse, RefreshPackagesResponse, RemovePackagesResponse, SearchProcessesResponse, SystemInfo, UpgradePackagesResponse, DeviceConnectionHistoryResponse, DeviceNetworkMetricsResponse } from '../types'
 import { getToken } from '../contexts/AuthContext'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
@@ -220,4 +220,7 @@ export const api = {
     if (limit) params.set('limit', limit.toString())
     return fetchJson<SearchProcessesResponse>(`/api/v1/instances/${identifier}/processes/search?${params.toString()}`)
   },
+
+  getDeviceNetworkMetrics: (identifier: string, limit = 50) =>
+    fetchJson<DeviceNetworkMetricsResponse>(`/api/v1/instances/${identifier}/metrics/network?limit=${limit}`),
 }

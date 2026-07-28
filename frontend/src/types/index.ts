@@ -20,6 +20,11 @@ export interface HostMetrics {
   platform: string
   process_count?: number
   processes?: ProcessInfo[]
+  rx_bytes_per_sec?: number
+  tx_bytes_per_sec?: number
+  packets_recv_per_sec?: number
+  packets_sent_per_sec?: number
+  rtt_ms?: number
 }
 
 export interface Instance {
@@ -204,5 +209,22 @@ export interface SystemNotification {
   host: string
   timestamp: number
   read: boolean
+}
+
+export interface DeviceNetworkMetric {
+  id: string
+  device_id: string
+  rx_bytes_per_sec: number
+  tx_bytes_per_sec: number
+  packets_recv_per_sec: number
+  packets_sent_per_sec: number
+  rtt_ms: number
+  recorded_at: string
+}
+
+export interface DeviceNetworkMetricsResponse {
+  device_id: string
+  metrics: DeviceNetworkMetric[]
+  total: number
 }
 
