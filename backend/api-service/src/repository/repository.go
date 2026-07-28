@@ -22,6 +22,13 @@ type Repository interface {
 	InsertEvent(ctx context.Context, event *models.Event) error
 	ListEventsByDevice(ctx context.Context, deviceID string, limit int) ([]*models.Event, error)
 
+	// Eventos de Contenedores
+	InsertContainerEvent(ctx context.Context, event *models.ContainerEvent) error
+	ListContainerEventsByContainer(ctx context.Context, deviceID, containerID string, limit, offset int) ([]*models.ContainerEvent, error)
+
+	// Alertas
+	InsertAlert(ctx context.Context, alert *models.Alert) error
+
 	// Tokens de Registro
 	CreateRegistrationToken(ctx context.Context, token *models.RegistrationToken) error
 	GetRegistrationToken(ctx context.Context, tokenStr string) (*models.RegistrationToken, error)
@@ -76,6 +83,21 @@ func InsertEvent(ctx context.Context, event *models.Event) error {
 // ListEventsByDevice delega en la implementación inyectada.
 func ListEventsByDevice(ctx context.Context, deviceID string, limit int) ([]*models.Event, error) {
 	return implementation.ListEventsByDevice(ctx, deviceID, limit)
+}
+
+// InsertContainerEvent delega en la implementación inyectada.
+func InsertContainerEvent(ctx context.Context, event *models.ContainerEvent) error {
+	return implementation.InsertContainerEvent(ctx, event)
+}
+
+// ListContainerEventsByContainer delega en la implementación inyectada.
+func ListContainerEventsByContainer(ctx context.Context, deviceID, containerID string, limit, offset int) ([]*models.ContainerEvent, error) {
+	return implementation.ListContainerEventsByContainer(ctx, deviceID, containerID, limit, offset)
+}
+
+// InsertAlert delega en la implementación inyectada.
+func InsertAlert(ctx context.Context, alert *models.Alert) error {
+	return implementation.InsertAlert(ctx, alert)
 }
 
 // CreateRegistrationToken delega en la implementación inyectada.

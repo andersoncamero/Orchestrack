@@ -47,6 +47,9 @@ func SubscribeContainerEvents(registry *cache.Registry, history *cache.Connectio
 	if err := subscribeContainerRemoved(registry, hub, logger); err != nil {
 		return err
 	}
+	if err := subscribeContainerEvent(hub, logger); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -538,6 +541,79 @@ func subscribeContainerRemoved(registry *cache.Registry, hub *websocket.Hub, log
 		logger.Debug("container removed event received", "service_id", event.ServiceId, "id", event.Id)
 	})
 	return err
+}
+
+// subscribeContainerEvent se suscribe a los eventos de ciclo de vida/fallo de contenedores
+// publicados por los agentes, los persiste en base de datos, genera alertas para eventos
+// críticos y los retransmite por WebSocket.
+func subscribeContainerEvent(hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.EventSubject(events.SubjectContainerEvent, "*"), func(data []byte) {
+		var event docker.ContainerEvent
+		if err := proto.Unmarshal(data, &event); err != nil {
+			logger.Warn("failed to unmarshal container event", "error", err)
+			return
+		}
+
+		// Persistir evento en base de datos
+		evt := &models.ContainerEvent{
+			DeviceID:      event.ServiceId,
+			ContainerID:   event.ContainerId,
+			ContainerName: event.ContainerName,
+			Image:         event.Image,
+			EventType:     event.EventType,
+			ExitCode:      event.ExitCode,
+			Reason:        event.Reason,
+		}
+		evt.CreatedAt = time.Unix(event.Timestamp, 0)
+		if err := repository.InsertContainerEvent(context.Background(), evt); err != nil {
+			logger.Warn("failed to insert container event", "error", err)
+		}
+
+		// Generar alerta no leída si el evento es crítico
+		if isCriticalContainerEvent(event.EventType, event.ExitCode) {
+			if err := repository.InsertAlert(context.Background(), buildContainerEventAlert(&event)); err != nil {
+				logger.Warn("failed to insert container event alert", "error", err)
+			}
+		}
+
+		// Retransmitir en tiempo real a la sala del dispositivo y al canal global de monitoreo
+		payload := map[string]interface{}{
+			"service_id":     event.ServiceId,
+			"container_id":   event.ContainerId,
+			"container_name": event.ContainerName,
+			"image":          event.Image,
+			"event_type":     event.EventType,
+			"exit_code":      event.ExitCode,
+			"reason":         event.Reason,
+			"timestamp":      event.Timestamp,
+		}
+		broadcastEvent(hub, "device:"+event.ServiceId, "container.event", payload)
+		broadcastEvent(hub, "dashboard", "container.event", payload)
+
+		logger.Debug("container event received", "service_id", event.ServiceId, "container_id", event.ContainerId, "event_type", event.EventType)
+	})
+	return err
+}
+
+// isCriticalContainerEvent determina si un evento de contenedor debe generar una alerta.
+func isCriticalContainerEvent(eventType string, exitCode int32) bool {
+	return eventType == "oom" || exitCode != 0
+}
+
+// buildContainerEventAlert construye la alerta no leída asociada a un evento crítico.
+func buildContainerEventAlert(event *docker.ContainerEvent) *models.Alert {
+	message := fmt.Sprintf("container %s (%s) reported event %q with exit_code=%d", event.ContainerName, event.ContainerId, event.EventType, event.ExitCode)
+	if event.Reason != "" {
+		message += ": " + event.Reason
+	}
+
+	return &models.Alert{
+		DeviceID:    event.ServiceId,
+		ContainerID: event.ContainerId,
+		Type:        "container." + event.EventType,
+		Message:     message,
+		IsRead:      false,
+	}
 }
 
 // insertInstanceEvent persiste un evento de cambio de estado de instancia en la base de datos.

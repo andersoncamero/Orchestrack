@@ -22,7 +22,7 @@ func NewPostgresRepository(databaseURL string) (*PostgresRepository, error) {
 		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
 	}
 
-	if err := db.AutoMigrate(&models.User{}, &models.Device{}, &models.Event{}, &models.RegistrationToken{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Device{}, &models.Event{}, &models.RegistrationToken{}, &models.ContainerEvent{}, &models.Alert{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate models: %w", err)
 	}
 
@@ -106,6 +106,34 @@ func (repo *PostgresRepository) ListEventsByDevice(ctx context.Context, deviceID
 		return nil, err
 	}
 	return events, nil
+}
+
+// InsertContainerEvent crea un nuevo evento de contenedor.
+func (repo *PostgresRepository) InsertContainerEvent(ctx context.Context, event *models.ContainerEvent) error {
+	return repo.db.WithContext(ctx).Create(event).Error
+}
+
+// ListContainerEventsByContainer lista el historial de eventos de un contenedor con paginación.
+func (repo *PostgresRepository) ListContainerEventsByContainer(ctx context.Context, deviceID, containerID string, limit, offset int) ([]*models.ContainerEvent, error) {
+	var events []*models.ContainerEvent
+	query := repo.db.WithContext(ctx).
+		Where("device_id = ? AND container_id = ?", deviceID, containerID).
+		Order("created_at DESC")
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+	if offset > 0 {
+		query = query.Offset(offset)
+	}
+	if err := query.Find(&events).Error; err != nil {
+		return nil, err
+	}
+	return events, nil
+}
+
+// InsertAlert crea una nueva alerta.
+func (repo *PostgresRepository) InsertAlert(ctx context.Context, alert *models.Alert) error {
+	return repo.db.WithContext(ctx).Create(alert).Error
 }
 
 // Close cierra la conexión a la base de datos.
