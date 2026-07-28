@@ -1,16 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Activity, Clock, WifiOff } from 'lucide-react'
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from 'recharts'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useTheme } from '../../contexts/ThemeContext'
 import { Spinner } from '../atoms/Spinner'
 import type { ConnectionHistorySample, DeviceConnectionEvent } from '../../types'
 
@@ -25,32 +15,18 @@ interface DeviceConnectionHistoryChartProps {
   currentStatus?: 'online' | 'offline' | 'pending'
 }
 
-const CustomTooltip = ({ active, payload, t }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload
-    const isOnline = data.statusVal === 1
+// Constantes de dimensiones y diseño del SVG
+const WIDTH = 800
+const HEIGHT = 130
+const PADDING = { top: 70, right: 30, bottom: 30, left: 60 }
+const GRID_WIDTH = WIDTH - PADDING.left - PADDING.right
+const GRID_HEIGHT = HEIGHT - PADDING.top - PADDING.bottom
 
-    return (
-      <div className="bg-(--color-bg-surface) border border-(--color-border) text-(--color-text-main) p-3 rounded-xl shadow-xl text-xs space-y-1.5 min-w-48 z-50">
-        <p className="text-(--color-text-muted) font-mono text-[11px] font-semibold">{data.exactTime}</p>
-        <div className="flex items-center justify-between font-medium">
-          <span>{t('status') || 'Estado'}:</span>
-          <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
-            isOnline 
-              ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30' 
-              : 'bg-rose-500/10 text-rose-500 border border-rose-500/30'
-          }`}>
-            {isOnline ? (t('online') || 'Conectado (Activo)') : (t('offline') || 'Desconectado (Inactivo)')}
-          </span>
-        </div>
-      </div>
-    )
-  }
-  return null
-}
+const Y_ACTIVE = PADDING.top
+const Y_INACTIVE = PADDING.top + GRID_HEIGHT
 
 export function DeviceConnectionHistoryChart({
-  samples = [],
+  samples,
   events = [],
   loading = false,
   range,
@@ -58,10 +34,14 @@ export function DeviceConnectionHistoryChart({
   currentStatus,
 }: DeviceConnectionHistoryChartProps) {
   const { t } = useLanguage()
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
+  const [hoveredPoint, setHoveredPoint] = useState<{
+    x: number
+    y: number
+    sample: ConnectionHistorySample
+    status: 'online' | 'offline' | 'no_data'
+  } | null>(null)
 
-  // Reloj local para mantener la ventana de tiempo actualizada
+  // Reloj local para mantener el extremo de la gráfica en el "ahora" real
   const [currentTime, setCurrentTime] = useState<number>(Math.floor(Date.now() / 1000))
 
   useEffect(() => {
@@ -70,6 +50,155 @@ export function DeviceConnectionHistoryChart({
     }, 15000)
     return () => clearInterval(interval)
   }, [])
+
+  // Procesar muestras con ventana de tiempo móvil absoluta
+  const processedData = useMemo(() => {
+    const now = currentTime
+    let minT = now - 24 * 3600
+    if (range === '7d') {
+      minT = now - 7 * 24 * 3600
+    } else if (range === '30d') {
+      minT = now - 30 * 24 * 3600
+    }
+    const maxT = now
+    const diffT = maxT - minT || 1
+
+    if (!samples || samples.length === 0) {
+      return { points: [], xTicks: [] }
+    }
+
+    // Ordenar cronológicamente (ascendente)
+    const sortedAll = [...samples].sort((a, b) => a.timestamp - b.timestamp)
+    const samplesInside = sortedAll.filter((s) => s.timestamp >= minT && s.timestamp <= maxT)
+
+    // Determinar la muestra inicial para rellenar desde el extremo izquierdo (minT)
+    let initialSample = samplesInside[0] || sortedAll[sortedAll.length - 1]
+    const samplesBefore = sortedAll.filter((s) => s.timestamp < minT)
+    if (samplesBefore.length > 0) {
+      initialSample = samplesBefore[samplesBefore.length - 1]
+    }
+
+    const startSample: ConnectionHistorySample = {
+      timestamp: minT,
+      online: initialSample.online,
+      offline: initialSample.offline,
+      total: initialSample.total,
+    }
+
+    // Determinar el estado final para proyectarlo hasta "ahora" (maxT)
+    const lastSample = samplesInside[samplesInside.length - 1] || initialSample
+    const currentOnlineCount = currentStatus === 'online' ? 1 : 0
+    const currentTotalCount = currentStatus ? 1 : (lastSample.total > 0 ? 1 : 0)
+
+    const endSample: ConnectionHistorySample = {
+      timestamp: maxT,
+      online: currentOnlineCount,
+      offline: currentTotalCount - currentOnlineCount,
+      total: currentTotalCount,
+    }
+
+    // Construir conjunto completo de muestras a graficar
+    const graphSamples = [
+      startSample,
+      ...samplesInside,
+      endSample
+    ]
+
+    // Mapear muestras a puntos de coordenadas en el SVG
+    const points = graphSamples.map((sample) => {
+      const x = PADDING.left + ((sample.timestamp - minT) / diffT) * GRID_WIDTH
+
+      let status: 'online' | 'offline' | 'no_data' = 'no_data'
+      if (sample.total > 0) {
+        status = sample.online > 0 ? 'online' : 'offline'
+      }
+
+      const y = status === 'online' ? Y_ACTIVE : Y_INACTIVE
+
+      return {
+        x,
+        y,
+        status,
+        sample,
+      }
+    })
+
+    // Generar marcas del eje X espaciadas equidistantemente con formato según el rango
+    const xTicks: { x: number; label: string }[] = []
+    const numTicks = range === '24h' ? 7 : 6
+    const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
+    for (let i = 0; i < numTicks; i++) {
+      const tickTimestamp = minT + (i / (numTicks - 1)) * diffT
+      const x = PADDING.left + ((tickTimestamp - minT) / diffT) * GRID_WIDTH
+      const date = new Date(tickTimestamp * 1000)
+
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const hr = String(date.getHours()).padStart(2, '0')
+      const min = String(date.getMinutes()).padStart(2, '0')
+      const wd = weekDays[date.getDay()]
+
+      const label = range === '24h'
+        ? `${hr}:${min}`
+        : range === '7d'
+          ? `${wd} ${day}/${month}`
+          : `${day}/${month}`
+      xTicks.push({ x, label })
+    }
+
+    return { points, xTicks }
+  }, [samples, range, currentStatus, currentTime])
+
+  const { points, xTicks } = processedData
+
+  // Obtener eventos que ocurrieron en el intervalo de la muestra seleccionada
+  const intervalEvents = useMemo(() => {
+    if (!hoveredPoint || !events) return []
+    const tEnd = hoveredPoint.sample.timestamp
+    const tStart = tEnd - 3600 // 1 hora atrás
+
+    return events.filter((e) => e.timestamp > tStart && e.timestamp <= tEnd)
+  }, [hoveredPoint, events])
+
+  // Obtener el último evento de desconexión antes del timestamp seleccionado
+  const lastOfflineEvent = useMemo(() => {
+    if (!hoveredPoint || !events || hoveredPoint.status !== 'offline') return null
+    return [...events]
+      .filter((e) => e.type === 'instance.offline' && e.timestamp <= hoveredPoint.sample.timestamp)
+      .sort((a, b) => b.timestamp - a.timestamp)[0] || null
+  }, [hoveredPoint, events])
+
+  // Obtener las desconexiones recientes generales para listarlas
+  const recentDisconnects = useMemo(() => {
+    if (!events) return []
+    return [...events]
+      .filter((e) => e.type === 'instance.offline')
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 5)
+  }, [events])
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'online':
+        return t('online') || 'Activo'
+      case 'offline':
+        return t('offline') || 'Inactivo'
+      default:
+        return t('noData') || 'Sin datos'
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'online':
+        return '#10b981' // Verde
+      case 'offline':
+        return '#ef4444' // Rojo
+      default:
+        return 'var(--color-border)' // Gris
+    }
+  }
 
   const formatExactTime = (ts: number) => {
     const d = new Date(ts * 1000)
@@ -80,167 +209,7 @@ export function DeviceConnectionHistoryChart({
     const min = String(d.getMinutes()).padStart(2, '0')
     const sec = String(d.getSeconds()).padStart(2, '0')
     return `${day}/${month}/${year} ${hr}:${min}:${sec}`
-  }
-
-  // Procesar métricas y desconexiones reales sin inventar periodos de inactividad previos al registro del servidor
-  const chartData = useMemo(() => {
-    const now = currentTime
-    let minT = now - 24 * 3600
-    if (range === '7d') {
-      minT = now - 7 * 24 * 3600
-    } else if (range === '30d') {
-      minT = now - 30 * 24 * 3600
-    }
-    const maxT = now
-
-    if (!samples || samples.length === 0) {
-      return []
-    }
-
-    // Ordenar todas las muestras registradas
-    const sortedAll = [...samples].sort((a, b) => a.timestamp - b.timestamp)
-    const samplesInside = sortedAll.filter((s) => s.timestamp >= minT && s.timestamp <= maxT)
-
-    if (samplesInside.length === 0) {
-      return []
-    }
-
-    // Determinar inicio del timeline basado en el primer registro real dentro del rango
-    const firstSampleTime = samplesInside[0].timestamp
-    const startPointTime = Math.max(minT, firstSampleTime)
-    const firstStatusVal = samplesInside[0].online > 0 ? 1 : 0
-
-    const startPoint = {
-      timestamp: startPointTime,
-      statusVal: firstStatusVal,
-      isRealDisconnect: false,
-    }
-
-    // Set de timestamps exactos de eventos de desconexión
-    const offlineEventTimes = new Set(
-      (events || []).filter((e) => e.type === 'instance.offline').map((e) => e.timestamp)
-    )
-
-    const mappedSamples = samplesInside.map((sample, idx) => {
-      const isOnline = sample.online > 0
-      const statusVal = isOnline ? 1 : 0
-      const prevStatusVal = idx > 0 ? (samplesInside[idx - 1].online > 0 ? 1 : 0) : firstStatusVal
-      // Es una desconexión real si la conexión cae de Activo a Inactivo (transición) o coincide con un evento registrado
-      const isRealDisconnect = !isOnline && (prevStatusVal === 1 || offlineEventTimes.has(sample.timestamp))
-
-      return {
-        timestamp: sample.timestamp,
-        statusVal,
-        isRealDisconnect,
-      }
-    })
-
-    const currentOnlineVal = currentStatus === 'online' ? 1 : (currentStatus === 'offline' ? 0 : firstStatusVal)
-    const lastSampleVal = samplesInside[samplesInside.length - 1].online > 0 ? 1 : 0
-    const endPoint = {
-      timestamp: maxT,
-      statusVal: currentOnlineVal,
-      isRealDisconnect: currentStatus === 'offline' && lastSampleVal === 1,
-    }
-
-    const allPoints = [startPoint, ...mappedSamples, endPoint]
-
-    // Muestreo inteligente: mantener cambios de estado y desconexiones reales, espaciando puntos estables
-    const stepInterval = range === '7d' ? 1800 : range === '30d' ? 3600 * 4 : 300
-    const filteredPoints: typeof allPoints = []
-    let lastKeepTime = 0
-
-    allPoints.forEach((pt, idx) => {
-      const isFirst = idx === 0
-      const isLast = idx === allPoints.length - 1
-      const isStateChange = idx > 0 && pt.statusVal !== allPoints[idx - 1].statusVal
-      const isDisconnect = pt.isRealDisconnect
-
-      if (isFirst || isLast || isStateChange || isDisconnect || (pt.timestamp - lastKeepTime >= stepInterval)) {
-        filteredPoints.push(pt)
-        lastKeepTime = pt.timestamp
-      }
-    })
-
-    return filteredPoints.map((pt) => {
-      const d = new Date(pt.timestamp * 1000)
-      const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-      const day = String(d.getDate()).padStart(2, '0')
-      const month = String(d.getMonth() + 1).padStart(2, '0')
-      const hr = String(d.getHours()).padStart(2, '0')
-      const min = String(d.getMinutes()).padStart(2, '0')
-      const wd = weekDays[d.getDay()]
-
-      const label = range === '24h'
-        ? `${hr}:${min}`
-        : range === '7d'
-          ? `${wd} ${day}/${month}`
-          : `${day}/${month}`
-
-      return {
-        timestamp: pt.timestamp,
-        label,
-        statusVal: pt.statusVal,
-        isRealDisconnect: pt.isRealDisconnect,
-        exactTime: formatExactTime(pt.timestamp),
-      }
-    })
-  }, [samples, events, range, currentStatus, currentTime])
-
-  // Obtener las desconexiones recientes reales para el listado inferior
-  const recentDisconnects = useMemo(() => {
-    if (!events) return []
-    return [...events]
-      .filter((e) => e.type === 'instance.offline')
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 5)
-  }, [events])
-
-  // Colores adaptativos para Recharts
-  const gridStroke = isDark ? '#1e293b' : '#e2e8f0'
-  const axisStroke = isDark ? '#64748b' : '#94a3b8'
-  const tickFill = isDark ? '#94a3b8' : '#475569'
-
-  // Renderizar punto rojo ÚNICAMENTE en las desconexiones reales
-  const renderCustomDot = (props: any) => {
-    const { cx, cy, payload } = props
-    if (cx === undefined || cy === undefined || !payload) return null
-    
-    if (payload.isRealDisconnect) {
-      return (
-        <circle
-          key={`dot-${payload.timestamp}-${cx}`}
-          cx={cx}
-          cy={cy}
-          r={5}
-          fill="#ef4444"
-          stroke={isDark ? '#0f172a' : '#ffffff'}
-          strokeWidth={2}
-        />
-      )
-    }
-    return null
-  }
-
-  // Renderizar punto activo emergente al pasar el cursor (dinámico: verde si Activo, rojo si Inactivo)
-  const renderActiveDot = (props: any) => {
-    const { cx, cy, payload } = props
-    if (cx === undefined || cy === undefined || !payload) return null
-    const isOnline = payload.statusVal === 1
-    const color = isOnline ? '#10b981' : '#ef4444'
-
-    return (
-      <circle
-        key={`act-dot-${payload.timestamp}-${cx}`}
-        cx={cx}
-        cy={cy}
-        r={6}
-        fill={color}
-        stroke={isDark ? '#0f172a' : '#ffffff'}
-        strokeWidth={2}
-      />
-    )
-  }
+  };
 
   if (loading) {
     return (
@@ -252,16 +221,15 @@ export function DeviceConnectionHistoryChart({
   }
 
   return (
-    <div className="bg-(--color-bg-surface) border border-(--color-border) rounded-xl p-5 shadow-sm space-y-6">
-      {/* Header y Selector de Rango */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-(--color-border) pb-4">
+    <div className="bg-(--color-bg-surface) border border-(--color-border) rounded-xl p-5 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-(--color-primary-subtle) border border-(--color-primary)/20 flex items-center justify-center">
             <Activity className="w-5 h-5 text-(--color-primary)" />
           </div>
           <div>
             <h3 className="text-(--color-text-main) font-semibold text-base">Historial de Conexión del Equipo</h3>
-            <p className="text-(--color-text-muted) text-xs">Monitoreo de estado y cortes en la línea de tiempo con Recharts Simple Line Chart</p>
+            <p className="text-(--color-text-muted) text-xs">Monitoreo de estado y cortes en la línea de tiempo</p>
           </div>
         </div>
 
@@ -271,11 +239,10 @@ export function DeviceConnectionHistoryChart({
             <button
               key={r}
               onClick={() => onRangeChange(r)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                range === r
-                  ? 'bg-(--color-bg-surface) text-(--color-text-main) shadow-xs border border-(--color-border)'
-                  : 'text-(--color-text-muted) hover:text-(--color-text-main)'
-              }`}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${range === r
+                ? 'bg-(--color-bg-surface) text-(--color-text-main) shadow-xs border border-(--color-border)'
+                : 'text-(--color-text-muted) hover:text-(--color-text-main)'
+                }`}
             >
               {r === '24h' ? '24 Horas' : r === '7d' ? '7 Días' : '30 Días'}
             </button>
@@ -283,76 +250,335 @@ export function DeviceConnectionHistoryChart({
         </div>
       </div>
 
-      {/* Gráfico Recharts Simple Line Chart de Desconexiones Reales */}
-      {chartData.length === 0 ? (
+      {points.length === 0 ? (
         <div className="flex items-center justify-center min-h-[120px] border border-dashed border-(--color-border) rounded-xl bg-(--color-bg-base)/30">
           <p className="text-(--color-text-muted) text-sm flex items-center gap-2">
             <Clock className="w-4 h-4" /> No se registraron datos de conexión en este periodo.
           </p>
         </div>
       ) : (
-        <div className="relative bg-(--color-bg-base) border border-(--color-border) rounded-xl p-4">
-          <div className="w-full h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
-                <XAxis
-                  dataKey="label"
-                  stroke={axisStroke}
-                  tick={{ fill: tickFill, fontSize: 11 }}
-                  minTickGap={45}
-                  interval="preserveStartEnd"
+        <div className="overflow-x-auto relative">
+          <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              {/* Degradado Verde para Activo */}
+              <linearGradient id="gradient-online" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+              </linearGradient>
+              {/* Degradado Rojo para Inactivo */}
+              <linearGradient id="gradient-offline" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#ef4444" stopOpacity="0.0" />
+              </linearGradient>
+              {/* Brillo para las líneas activas */}
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            {/* Líneas guía horizontales */}
+            <g className="stroke-(--color-border) opacity-40">
+              {/* Línea Activo */}
+              <line
+                x1={PADDING.left}
+                y1={Y_ACTIVE}
+                x2={WIDTH - PADDING.right}
+                y2={Y_ACTIVE}
+                strokeDasharray="4 4"
+                strokeWidth={1}
+              />
+              {/* Línea Inactivo */}
+              <line
+                x1={PADDING.left}
+                y1={Y_INACTIVE}
+                x2={WIDTH - PADDING.right}
+                y2={Y_INACTIVE}
+                strokeDasharray="4 4"
+                strokeWidth={1}
+              />
+            </g>
+
+            {/* Etiquetas del eje Y (Activo / Inactivo) */}
+            <g className="fill-(--color-text-muted) text-[9px] font-sans font-medium">
+              <text x={PADDING.left - 12} y={Y_ACTIVE + 4} textAnchor="end" className="fill-[#10b981]">
+                Activo
+              </text>
+              <text x={PADDING.left - 12} y={Y_INACTIVE + 4} textAnchor="end" className="fill-[#ef4444]">
+                Inactivo
+              </text>
+            </g>
+
+            {/* Renderizado de Áreas Degradadas y Líneas de Pasos */}
+            {points.map((pt, i) => {
+              if (i === points.length - 1) return null
+
+              const nextPt = points[i + 1]
+              // Si hay corte (sin datos), no dibujamos este segmento
+              if (pt.status === 'no_data' || nextPt.status === 'no_data') return null
+
+              const fillGradient = pt.status === 'online' ? 'url(#gradient-online)' : 'url(#gradient-offline)'
+              const color = getStatusColor(pt.status)
+
+              return (
+                <g key={i}>
+                  {/* Área degradada */}
+                  <polygon
+                    points={`
+                      ${pt.x},${pt.y}
+                      ${nextPt.x},${pt.y}
+                      ${nextPt.x},${Y_INACTIVE}
+                      ${pt.x},${Y_INACTIVE}
+                    `}
+                    fill={fillGradient}
+                  />
+
+                  {/* Línea horizontal de estado */}
+                  <line
+                    x1={pt.x}
+                    y1={pt.y}
+                    x2={nextPt.x}
+                    y2={pt.y}
+                    stroke={color}
+                    strokeWidth={1.2}
+                    strokeLinecap="round"
+                  />
+
+                  {/* Línea vertical de transición (salto de estado) */}
+                  {pt.y !== nextPt.y && (
+                    <line
+                      x1={nextPt.x}
+                      y1={pt.y}
+                      x2={nextPt.x}
+                      y2={nextPt.y}
+                      stroke={getStatusColor(nextPt.status)}
+                      strokeWidth={1.2}
+                      strokeLinecap="round"
+                    />
+                  )}
+                </g>
+              )
+            })}
+
+            {/* Cuadrícula vertical y etiquetas del eje X */}
+            <g>
+              {xTicks.map((tick, idx) => (
+                <g key={idx}>
+                  <line
+                    x1={tick.x}
+                    y1={PADDING.top}
+                    x2={tick.x}
+                    y2={Y_INACTIVE}
+                    stroke="var(--color-border)"
+                    strokeWidth={1}
+                    className="opacity-20"
+                  />
+                  <text
+                    x={tick.x}
+                    y={Y_INACTIVE + 18}
+                    textAnchor="middle"
+                    className="fill-(--color-text-muted) text-[9px] font-sans font-medium"
+                  >
+                    {tick.label}
+                  </text>
+                </g>
+              ))}
+            </g>
+
+            {/* Puntos interactivos invisibles para hovered y círculos marcadores */}
+            {points.map((pt, i) => {
+              if (pt.status === 'no_data') return null
+
+              const isHovered = hoveredPoint && hoveredPoint.sample.timestamp === pt.sample.timestamp
+
+              return (
+                <g key={i}>
+                  {/* Círculo indicador si está hovered o para destacar cambios de estado */}
+                  {(isHovered || (i > 0 && points[i - 1].status !== pt.status)) && (
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r={isHovered ? 3.5 : 1.8}
+                      fill="var(--color-bg-surface)"
+                      stroke={getStatusColor(pt.status)}
+                      strokeWidth={1.2}
+                      className="transition-all duration-150"
+                    />
+                  )}
+
+                  {/* Zona interactiva para capturar el mouse (círculo invisible sobre el punto) */}
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r={8}
+                    fill="transparent"
+                    onMouseEnter={() => setHoveredPoint(pt)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  />
+                </g>
+              )
+            })}
+
+            {/* Punto indicador del momento actual (último punto) */}
+            {points.length > 0 && (() => {
+              const lastPt = points[points.length - 1]
+              if (lastPt.status === 'no_data') return null
+              const color = getStatusColor(lastPt.status)
+              return (
+                <circle
+                  cx={lastPt.x}
+                  cy={lastPt.y}
+                  r={2.5}
+                  fill={color}
                 />
-                <YAxis
-                  stroke={axisStroke}
-                  domain={[0, 1]}
-                  ticks={[0, 1]}
-                  tick={{ fill: tickFill, fontSize: 11 }}
-                  tickFormatter={(val) => (val === 1 ? 'Activo' : 'Inactivo')}
-                />
-                <Tooltip content={<CustomTooltip t={t} />} />
-                <Line
-                  type="stepAfter"
-                  dataKey="statusVal"
-                  stroke="#10b981"
-                  strokeWidth={2.5}
-                  dot={renderCustomDot}
-                  activeDot={renderActiveDot}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+              )
+            })()}
+
+            {/* Tooltip integrado con hora exacta y segundos */}
+            {hoveredPoint && (() => {
+              const { x, y, sample, status } = hoveredPoint
+              const date = new Date(sample.timestamp * 1000)
+
+              // Buscar si hay eventos de cambio de estado en este bloque exacto de 1 hora
+              const eventsInHour = intervalEvents.filter((ev) => ev.type === 'instance.offline' || ev.type === 'instance.online')
+
+              const tooltipWidth = 100
+              const tooltipHeight = eventsInHour.length > 0 ? 35 + eventsInHour.length * 11 : (lastOfflineEvent && status === 'offline' ? 46 : 32)
+              const tooltipX = Math.max(5, Math.min(WIDTH - tooltipWidth - 5, x - tooltipWidth / 2))
+              const tooltipY = Math.max(5, y - tooltipHeight - 10)
+
+              // Formato corto de fecha/hora: DD/MM HH:MM
+              const day = String(date.getDate()).padStart(2, '0')
+              const month = String(date.getMonth() + 1).padStart(2, '0')
+              const min = String(date.getMinutes()).padStart(2, '0')
+              const shortDate = `${day}/${month} ${String(date.getHours()).padStart(2, '0')}:${min}`
+
+              return (
+                <g className="pointer-events-none" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.06))">
+                  <rect
+                    x={tooltipX}
+                    y={tooltipY}
+                    width={tooltipWidth}
+                    height={tooltipHeight}
+                    rx={4}
+                    fill="var(--color-bg-surface)"
+                    stroke="var(--color-border)"
+                    strokeWidth={0.8}
+                  />
+                  {/* Indicador del color del estado */}
+                  <rect
+                    x={tooltipX}
+                    y={tooltipY}
+                    width={2}
+                    height={tooltipHeight}
+                    rx={1}
+                    fill={getStatusColor(status)}
+                  />
+                  <text
+                    x={tooltipX + 6}
+                    y={tooltipY + 10}
+                    className="fill-(--color-text-main) text-[6.5px] font-bold font-sans"
+                  >
+                    {shortDate}
+                  </text>
+
+                  <text
+                    x={tooltipX + 6}
+                    y={tooltipY + 18}
+                    className="fill-(--color-text-muted) text-[6.5px] font-sans"
+                  >
+                    Estado: <tspan fill={getStatusColor(status)} className="font-bold">{getStatusLabel(status)}</tspan>
+                  </text>
+
+                  {/* Si hay eventos específicos de desconexión/conexión dentro de este bloque, mostrarlos con segundos exactos */}
+                  {eventsInHour.length > 0 ? (
+                    <g>
+                      <text x={tooltipX + 6} y={tooltipY + 26} className="fill-(--color-text-muted) text-[6px] font-bold">
+                        Cambios:
+                      </text>
+                      {eventsInHour.map((ev, index) => {
+                        const evTime = new Date(ev.timestamp * 1000)
+                        const formattedEv = `${String(evTime.getHours()).padStart(2, '0')}:${String(evTime.getMinutes()).padStart(2, '0')}:${String(evTime.getSeconds()).padStart(2, '0')}`
+                        const isOffline = ev.type === 'instance.offline'
+                        return (
+                          <text
+                            key={index}
+                            x={tooltipX + 10}
+                            y={tooltipY + 34 + index * 10}
+                            className="text-[6px] font-sans"
+                            fill={isOffline ? '#ef4444' : '#10b981'}
+                          >
+                            • {isOffline ? 'Caída' : 'Conex.'} {formattedEv}
+                          </text>
+                        )
+                      })}
+                    </g>
+                  ) : (
+                    /* Si está inactivo y no hay eventos en esta hora, mostrar el momento exacto en el que ocurrió la última desconexión */
+                    status === 'offline' && lastOfflineEvent ? (
+                      <g>
+                        <text x={tooltipX + 6} y={tooltipY + 26} className="fill-(--color-text-muted) text-[6px] font-bold">
+                          Caída desde:
+                        </text>
+                        <text x={tooltipX + 6} y={tooltipY + 35} className="fill-[#ef4444] text-[6px] font-bold font-mono">
+                          {(() => {
+                            const d = new Date(lastOfflineEvent.timestamp * 1000)
+                            const h = String(d.getHours()).padStart(2, '0')
+                            const m = String(d.getMinutes()).padStart(2, '0')
+                            const s = String(d.getSeconds()).padStart(2, '0')
+                            return `${d.getDate()}/${d.getMonth() + 1} ${h}:${m}:${s}`
+                          })()}
+                        </text>
+                      </g>
+                    ) : (
+                      <text x={tooltipX + 6} y={tooltipY + 26} className="fill-(--color-text-muted) text-[6px]">
+                        Sin cortes.
+                      </text>
+                    )
+                  )}
+                </g>
+              )
+            })()}
+          </svg>
         </div>
       )}
 
-      {/* Leyenda e Instrucciones */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-(--color-text-muted) pt-1">
+      {/* Resumen e Indicadores */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 pt-4 border-t border-(--color-border)">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 font-medium text-emerald-500">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> Conectado (Activo)
-          </span>
-          <span className="flex items-center gap-1.5 font-medium text-rose-500">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" /> Desconectado (Inactivo)
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
+            <span className="text-(--color-text-secondary) text-xs">Conectado (Activo)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
+            <span className="text-(--color-text-secondary) text-xs">Desconectado (Inactivo)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm bg-transparent border border-(--color-border)" style={{ backgroundColor: 'var(--color-bg-base)' }} />
+            <span className="text-(--color-text-secondary) text-xs">Sin datos</span>
+          </div>
         </div>
-        <span>Pasa el cursor sobre la línea para ver la fecha y la hora exacta con segundos.</span>
+
+        <div className="text-[11px] text-(--color-text-muted)">
+          Pasa el cursor sobre la línea para ver la fecha y la hora exacta con segundos de las desconexiones.
+        </div>
       </div>
 
-      {/* Listado de Últimas Desconexiones Registradas */}
+      {/* Listado de Últimas Desconexiones con segundos exactos */}
       {recentDisconnects.length > 0 && (
-        <div className="pt-3 border-t border-(--color-border) space-y-3">
-          <h4 className="text-xs font-semibold text-(--color-text-main) flex items-center gap-1.5">
-            <WifiOff className="w-4 h-4 text-rose-500" />
+        <div className="mt-5 pt-4 border-t border-(--color-border)/60">
+          <h4 className="text-xs font-bold text-(--color-text-main) flex items-center gap-1.5 mb-3">
+            <WifiOff className="w-3.5 h-3.5 text-[#ef4444]" />
             Últimas desconexiones registradas (segundos exactos)
           </h4>
-          <div className="flex flex-wrap gap-2">
-            {recentDisconnects.map((e, idx) => (
-              <div
-                key={idx}
-                className="bg-rose-500/10 border border-rose-500/30 text-rose-500 px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2"
-              >
-                <span>{formatExactTime(e.timestamp)}</span>
-                <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-[10px] font-bold uppercase">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {recentDisconnects.map((ev, index) => (
+              <div key={index} className="bg-(--color-bg-base) border border-(--color-border) rounded-lg p-2.5 flex items-center justify-between text-xs">
+                <span className="text-(--color-text-secondary) font-mono">
+                  {formatExactTime(ev.timestamp)}
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-500/10 text-red-500 border border-red-500/20">
                   Desconectado
                 </span>
               </div>
