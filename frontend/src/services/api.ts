@@ -86,13 +86,17 @@ export const api = {
   getContainer: (identifier: string, id: string) =>
     fetchJson<{ container: Container }>(`/api/v1/instances/${identifier}/containers/${id}`),
 
-  getContainerLogs: (identifier: string, id: string, opts?: { tail?: number; timestamps?: boolean; stdout?: boolean; stderr?: boolean }) => {
+  getContainerLogs: async (identifier: string, id: string, opts?: { tail?: number; timestamps?: boolean; stdout?: boolean; stderr?: boolean }): Promise<string[]> => {
     const params = new URLSearchParams()
     if (opts?.tail !== undefined) params.set('tail', String(opts.tail))
     if (opts?.timestamps !== undefined) params.set('timestamps', String(opts.timestamps))
     if (opts?.stdout !== undefined) params.set('stdout', String(opts.stdout))
     if (opts?.stderr !== undefined) params.set('stderr', String(opts.stderr))
-    return fetchJson<string[]>(`/api/v1/instances/${identifier}/containers/${id}/logs?${params.toString()}`)
+    const res = await fetchJson<{ lines?: string[] } | string[]>(`/api/v1/instances/${identifier}/containers/${id}/logs?${params.toString()}`)
+    if (Array.isArray(res)) {
+      return res
+    }
+    return res?.lines || []
   },
 
   getContainerEvents: (identifier: string, id: string, opts?: { limit?: number; offset?: number }) => {

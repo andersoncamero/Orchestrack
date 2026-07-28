@@ -46,11 +46,13 @@ export function LogViewer({
   const { t } = useLanguage()
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  const safeLogs = Array.isArray(logs) ? logs : []
+
   useEffect(() => {
     if (autoScroll && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [logs, autoScroll])
+  }, [safeLogs, autoScroll])
 
   return (
     <div className="flex flex-col h-full rounded-lg overflow-hidden border border-(--color-border)">
@@ -119,7 +121,7 @@ export function LogViewer({
         ref={scrollRef}
         className="flex-1 overflow-auto bg-gray-900 p-3 font-mono text-sm"
       >
-        {logs.length === 0 ? (
+        {safeLogs.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-400 text-xs">
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -129,7 +131,7 @@ export function LogViewer({
           </div>
         ) : (
           <div className="space-y-0.5">
-            {logs.map((line, index) => {
+            {safeLogs.map((line, index) => {
               const isError = isStderrLine(line)
               return (
                 <div

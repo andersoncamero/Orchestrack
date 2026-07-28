@@ -68,7 +68,7 @@ export function ContainerDetailPanel({ container, identifier, isOpen, onClose }:
       stdout: true,
       stderr: true,
     })
-      .then((data) => setLogs(data || []))
+      .then((data) => setLogs(Array.isArray(data) ? data : []))
       .catch(console.error)
       .finally(() => setLoadingLogs(false))
   }, [identifier, container.id, tailLines, showTimestamps])
@@ -106,12 +106,14 @@ export function ContainerDetailPanel({ container, identifier, isOpen, onClose }:
   })
 
   const handleCopyLogs = useCallback(() => {
-    const text = logs.join('\n')
+    const safeLogs = Array.isArray(logs) ? logs : []
+    const text = safeLogs.join('\n')
     navigator.clipboard.writeText(text).catch(console.error)
   }, [logs])
 
   const handleDownloadLogs = useCallback(() => {
-    const text = logs.join('\n')
+    const safeLogs = Array.isArray(logs) ? logs : []
+    const text = safeLogs.join('\n')
     const blob = new Blob([text], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -132,13 +134,13 @@ export function ContainerDetailPanel({ container, identifier, isOpen, onClose }:
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div className="absolute inset-0 bg-(--color-text-main)/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-2xl bg-(--color-bg-surface) border-l border-(--color-border) shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-200">
+      <div className="relative w-full max-w-3xl max-h-[85vh] bg-(--color-bg-surface) border border-(--color-border) rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-(--color-border)">
-          <div>
-            <h2 className="text-lg font-semibold text-(--color-text-main)">{container.name || container.id.slice(0, 12)}</h2>
-            <p className="text-xs text-(--color-text-muted) font-mono">{container.id}</p>
+          <div className="min-w-0 pr-4">
+            <h2 className="text-lg font-semibold text-(--color-text-main) truncate">{container.name || container.id.slice(0, 12)}</h2>
+            <p className="text-xs text-(--color-text-muted) font-mono break-all">{container.id}</p>
           </div>
           <button
             onClick={onClose}
@@ -305,9 +307,9 @@ export function ContainerDetailPanel({ container, identifier, isOpen, onClose }:
 
 function InfoField({ label, value, monospace }: { label: string; value: string; monospace?: boolean }) {
   return (
-    <div className="bg-(--color-bg-base) border border-(--color-border) rounded-lg px-4 py-3">
+    <div className="bg-(--color-bg-base) border border-(--color-border) rounded-lg px-4 py-3 min-w-0">
       <p className="text-xs text-(--color-text-muted) mb-1">{label}</p>
-      <p className={`text-sm text-(--color-text-main) ${monospace ? 'font-mono' : ''}`}>{value}</p>
+      <p className={`text-sm text-(--color-text-main) break-all ${monospace ? 'font-mono' : ''}`}>{value}</p>
     </div>
   )
 }
