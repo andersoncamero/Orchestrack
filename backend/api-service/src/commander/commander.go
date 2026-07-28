@@ -63,6 +63,17 @@ func GetContainer(ctx context.Context, identifier string, hostnameRegistry map[s
 	return resp, nil
 }
 
+// GetContainerLogs envía el comando get container logs a una instancia de docker-service.
+func GetContainerLogs(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *docker.GetContainerLogsRequest) (*docker.GetContainerLogsResponse, error) {
+	target := resolveIdentifier(hostnameRegistry, identifier)
+	subject := events.CommandSubject(events.SubjectCommandGetContainerLogs, target)
+	resp := &docker.GetContainerLogsResponse{}
+	if err := execute(ctx, subject, req, resp); err != nil {
+		return nil, fmt.Errorf("failed to get container logs: %w", err)
+	}
+	return resp, nil
+}
+
 // CreateContainer envía el comando create a una instancia de docker-service.
 func CreateContainer(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *docker.CreateContainerRequest) (*docker.CreateContainerResponse, error) {
 	target := resolveIdentifier(hostnameRegistry, identifier)

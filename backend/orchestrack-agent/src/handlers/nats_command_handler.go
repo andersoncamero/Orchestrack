@@ -40,6 +40,7 @@ func (h *NATSCommandHandler) Subscribe() error {
 	}{
 		{events.SubjectCommandListContainers, h.handleListContainers},
 		{events.SubjectCommandGetContainer, h.handleGetContainer},
+		{events.SubjectCommandGetContainerLogs, h.handleGetContainerLogs},
 		{events.SubjectCommandCreateContainer, h.handleCreateContainer},
 		{events.SubjectCommandStartContainer, h.handleStartContainer},
 		{events.SubjectCommandStopContainer, h.handleStopContainer},
@@ -105,6 +106,18 @@ func (h *NATSCommandHandler) handleGetContainer(ctx context.Context, data []byte
 		return nil, err
 	}
 	return proto.Marshal(&docker.GetContainerResponse{Container: resp})
+}
+
+func (h *NATSCommandHandler) handleGetContainerLogs(ctx context.Context, data []byte) ([]byte, error) {
+	var req docker.GetContainerLogsRequest
+	if err := proto.Unmarshal(data, &req); err != nil {
+		return nil, err
+	}
+	resp, err := repository.GetContainerLogs(ctx, req.Id, req.TailLines, req.Timestamps, req.ShowStdout, req.ShowStderr)
+	if err != nil {
+		return nil, err
+	}
+	return proto.Marshal(resp)
 }
 
 func (h *NATSCommandHandler) handleCreateContainer(ctx context.Context, data []byte) ([]byte, error) {

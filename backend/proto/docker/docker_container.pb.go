@@ -899,6 +899,130 @@ func (x *RemoveContainerResponse) GetId() string {
 	return ""
 }
 
+type GetContainerLogsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Número máximo de líneas a devolver desde el final (0 = todas).
+	TailLines uint32 `protobuf:"varint,2,opt,name=tail_lines,json=tailLines,proto3" json:"tail_lines,omitempty"`
+	// Si es true, prefija cada línea con su timestamp.
+	Timestamps bool `protobuf:"varint,3,opt,name=timestamps,proto3" json:"timestamps,omitempty"`
+	// Si es true, incluye el stream stdout.
+	ShowStdout bool `protobuf:"varint,4,opt,name=show_stdout,json=showStdout,proto3" json:"show_stdout,omitempty"`
+	// Si es true, incluye el stream stderr.
+	ShowStderr    bool `protobuf:"varint,5,opt,name=show_stderr,json=showStderr,proto3" json:"show_stderr,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetContainerLogsRequest) Reset() {
+	*x = GetContainerLogsRequest{}
+	mi := &file_proto_docker_docker_container_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetContainerLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetContainerLogsRequest) ProtoMessage() {}
+
+func (x *GetContainerLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_docker_docker_container_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetContainerLogsRequest.ProtoReflect.Descriptor instead.
+func (*GetContainerLogsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_docker_docker_container_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetContainerLogsRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GetContainerLogsRequest) GetTailLines() uint32 {
+	if x != nil {
+		return x.TailLines
+	}
+	return 0
+}
+
+func (x *GetContainerLogsRequest) GetTimestamps() bool {
+	if x != nil {
+		return x.Timestamps
+	}
+	return false
+}
+
+func (x *GetContainerLogsRequest) GetShowStdout() bool {
+	if x != nil {
+		return x.ShowStdout
+	}
+	return false
+}
+
+func (x *GetContainerLogsRequest) GetShowStderr() bool {
+	if x != nil {
+		return x.ShowStderr
+	}
+	return false
+}
+
+type GetContainerLogsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Lines         []string               `protobuf:"bytes,1,rep,name=lines,proto3" json:"lines,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetContainerLogsResponse) Reset() {
+	*x = GetContainerLogsResponse{}
+	mi := &file_proto_docker_docker_container_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetContainerLogsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetContainerLogsResponse) ProtoMessage() {}
+
+func (x *GetContainerLogsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_docker_docker_container_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetContainerLogsResponse.ProtoReflect.Descriptor instead.
+func (*GetContainerLogsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_docker_docker_container_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetContainerLogsResponse) GetLines() []string {
+	if x != nil {
+		return x.Lines
+	}
+	return nil
+}
+
 // Resumen de un contenedor para listados.
 type ContainerSummary struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -915,7 +1039,7 @@ type ContainerSummary struct {
 
 func (x *ContainerSummary) Reset() {
 	*x = ContainerSummary{}
-	mi := &file_proto_docker_docker_container_proto_msgTypes[16]
+	mi := &file_proto_docker_docker_container_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -927,7 +1051,7 @@ func (x *ContainerSummary) String() string {
 func (*ContainerSummary) ProtoMessage() {}
 
 func (x *ContainerSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_container_proto_msgTypes[16]
+	mi := &file_proto_docker_docker_container_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -940,7 +1064,7 @@ func (x *ContainerSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerSummary.ProtoReflect.Descriptor instead.
 func (*ContainerSummary) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_container_proto_rawDescGZIP(), []int{16}
+	return file_proto_docker_docker_container_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ContainerSummary) GetId() string {
@@ -1018,7 +1142,7 @@ type Container struct {
 
 func (x *Container) Reset() {
 	*x = Container{}
-	mi := &file_proto_docker_docker_container_proto_msgTypes[17]
+	mi := &file_proto_docker_docker_container_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1030,7 +1154,7 @@ func (x *Container) String() string {
 func (*Container) ProtoMessage() {}
 
 func (x *Container) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_container_proto_msgTypes[17]
+	mi := &file_proto_docker_docker_container_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1043,7 +1167,7 @@ func (x *Container) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Container.ProtoReflect.Descriptor instead.
 func (*Container) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_container_proto_rawDescGZIP(), []int{17}
+	return file_proto_docker_docker_container_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *Container) GetId() string {
@@ -1226,7 +1350,20 @@ const file_proto_docker_docker_container_proto_rawDesc = "" +
 	"\x05force\x18\x02 \x01(\bR\x05force\x12%\n" +
 	"\x0eremove_volumes\x18\x03 \x01(\bR\rremoveVolumes\")\n" +
 	"\x17RemoveContainerResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xe9\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xaa\x01\n" +
+	"\x17GetContainerLogsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"tail_lines\x18\x02 \x01(\rR\ttailLines\x12\x1e\n" +
+	"\n" +
+	"timestamps\x18\x03 \x01(\bR\n" +
+	"timestamps\x12\x1f\n" +
+	"\vshow_stdout\x18\x04 \x01(\bR\n" +
+	"showStdout\x12\x1f\n" +
+	"\vshow_stderr\x18\x05 \x01(\bR\n" +
+	"showStderr\"0\n" +
+	"\x18GetContainerLogsResponse\x12\x14\n" +
+	"\x05lines\x18\x01 \x03(\tR\x05lines\"\xe9\x01\n" +
 	"\x10ContainerSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -1254,7 +1391,7 @@ const file_proto_docker_docker_container_proto_rawDesc = "" +
 	"\vauto_remove\x18\x0f \x01(\bR\n" +
 	"autoRemove\x12\x18\n" +
 	"\acreated\x18\x10 \x01(\x03R\acreated\x12\x1a\n" +
-	"\bplatform\x18\x11 \x01(\tR\bplatform2\xe6\x06\n" +
+	"\bplatform\x18\x11 \x01(\tR\bplatform2\xd5\a\n" +
 	"\x16DockerContainerService\x12g\n" +
 	"\x0eListContainers\x12).orchestrack.docker.ListContainersRequest\x1a*.orchestrack.docker.ListContainersResponse\x12a\n" +
 	"\fGetContainer\x12'.orchestrack.docker.GetContainerRequest\x1a(.orchestrack.docker.GetContainerResponse\x12j\n" +
@@ -1263,7 +1400,8 @@ const file_proto_docker_docker_container_proto_rawDesc = "" +
 	"\rStopContainer\x12(.orchestrack.docker.StopContainerRequest\x1a).orchestrack.docker.StopContainerResponse\x12m\n" +
 	"\x10RestartContainer\x12+.orchestrack.docker.RestartContainerRequest\x1a,.orchestrack.docker.RestartContainerResponse\x12j\n" +
 	"\x0fRenameContainer\x12*.orchestrack.docker.RenameContainerRequest\x1a+.orchestrack.docker.RenameContainerResponse\x12j\n" +
-	"\x0fRemoveContainer\x12*.orchestrack.docker.RemoveContainerRequest\x1a+.orchestrack.docker.RemoveContainerResponseB7Z5github.com/go/orchestrack/backend/proto/docker;dockerb\x06proto3"
+	"\x0fRemoveContainer\x12*.orchestrack.docker.RemoveContainerRequest\x1a+.orchestrack.docker.RemoveContainerResponse\x12m\n" +
+	"\x10GetContainerLogs\x12+.orchestrack.docker.GetContainerLogsRequest\x1a,.orchestrack.docker.GetContainerLogsResponseB7Z5github.com/go/orchestrack/backend/proto/docker;dockerb\x06proto3"
 
 var (
 	file_proto_docker_docker_container_proto_rawDescOnce sync.Once
@@ -1277,7 +1415,7 @@ func file_proto_docker_docker_container_proto_rawDescGZIP() []byte {
 	return file_proto_docker_docker_container_proto_rawDescData
 }
 
-var file_proto_docker_docker_container_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_proto_docker_docker_container_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_proto_docker_docker_container_proto_goTypes = []any{
 	(*ListContainersRequest)(nil),    // 0: orchestrack.docker.ListContainersRequest
 	(*ListContainersResponse)(nil),   // 1: orchestrack.docker.ListContainersResponse
@@ -1295,32 +1433,34 @@ var file_proto_docker_docker_container_proto_goTypes = []any{
 	(*RenameContainerResponse)(nil),  // 13: orchestrack.docker.RenameContainerResponse
 	(*RemoveContainerRequest)(nil),   // 14: orchestrack.docker.RemoveContainerRequest
 	(*RemoveContainerResponse)(nil),  // 15: orchestrack.docker.RemoveContainerResponse
-	(*ContainerSummary)(nil),         // 16: orchestrack.docker.ContainerSummary
-	(*Container)(nil),                // 17: orchestrack.docker.Container
-	(*Label)(nil),                    // 18: orchestrack.docker.Label
-	(*EnvVar)(nil),                   // 19: orchestrack.docker.EnvVar
-	(*Port)(nil),                     // 20: orchestrack.docker.Port
-	(*VolumeMount)(nil),              // 21: orchestrack.docker.VolumeMount
-	(*ContainerResources)(nil),       // 22: orchestrack.docker.ContainerResources
-	(ContainerStatus)(0),             // 23: orchestrack.docker.ContainerStatus
+	(*GetContainerLogsRequest)(nil),  // 16: orchestrack.docker.GetContainerLogsRequest
+	(*GetContainerLogsResponse)(nil), // 17: orchestrack.docker.GetContainerLogsResponse
+	(*ContainerSummary)(nil),         // 18: orchestrack.docker.ContainerSummary
+	(*Container)(nil),                // 19: orchestrack.docker.Container
+	(*Label)(nil),                    // 20: orchestrack.docker.Label
+	(*EnvVar)(nil),                   // 21: orchestrack.docker.EnvVar
+	(*Port)(nil),                     // 22: orchestrack.docker.Port
+	(*VolumeMount)(nil),              // 23: orchestrack.docker.VolumeMount
+	(*ContainerResources)(nil),       // 24: orchestrack.docker.ContainerResources
+	(ContainerStatus)(0),             // 25: orchestrack.docker.ContainerStatus
 }
 var file_proto_docker_docker_container_proto_depIdxs = []int32{
-	18, // 0: orchestrack.docker.ListContainersRequest.filters:type_name -> orchestrack.docker.Label
-	16, // 1: orchestrack.docker.ListContainersResponse.containers:type_name -> orchestrack.docker.ContainerSummary
-	17, // 2: orchestrack.docker.GetContainerResponse.container:type_name -> orchestrack.docker.Container
-	19, // 3: orchestrack.docker.CreateContainerRequest.env:type_name -> orchestrack.docker.EnvVar
-	20, // 4: orchestrack.docker.CreateContainerRequest.exposed_ports:type_name -> orchestrack.docker.Port
-	21, // 5: orchestrack.docker.CreateContainerRequest.volumes:type_name -> orchestrack.docker.VolumeMount
-	18, // 6: orchestrack.docker.CreateContainerRequest.labels:type_name -> orchestrack.docker.Label
-	22, // 7: orchestrack.docker.CreateContainerRequest.resources:type_name -> orchestrack.docker.ContainerResources
-	23, // 8: orchestrack.docker.ContainerSummary.status:type_name -> orchestrack.docker.ContainerStatus
-	20, // 9: orchestrack.docker.ContainerSummary.ports:type_name -> orchestrack.docker.Port
-	23, // 10: orchestrack.docker.Container.status:type_name -> orchestrack.docker.ContainerStatus
-	19, // 11: orchestrack.docker.Container.env:type_name -> orchestrack.docker.EnvVar
-	20, // 12: orchestrack.docker.Container.ports:type_name -> orchestrack.docker.Port
-	21, // 13: orchestrack.docker.Container.volumes:type_name -> orchestrack.docker.VolumeMount
-	18, // 14: orchestrack.docker.Container.labels:type_name -> orchestrack.docker.Label
-	22, // 15: orchestrack.docker.Container.resources:type_name -> orchestrack.docker.ContainerResources
+	20, // 0: orchestrack.docker.ListContainersRequest.filters:type_name -> orchestrack.docker.Label
+	18, // 1: orchestrack.docker.ListContainersResponse.containers:type_name -> orchestrack.docker.ContainerSummary
+	19, // 2: orchestrack.docker.GetContainerResponse.container:type_name -> orchestrack.docker.Container
+	21, // 3: orchestrack.docker.CreateContainerRequest.env:type_name -> orchestrack.docker.EnvVar
+	22, // 4: orchestrack.docker.CreateContainerRequest.exposed_ports:type_name -> orchestrack.docker.Port
+	23, // 5: orchestrack.docker.CreateContainerRequest.volumes:type_name -> orchestrack.docker.VolumeMount
+	20, // 6: orchestrack.docker.CreateContainerRequest.labels:type_name -> orchestrack.docker.Label
+	24, // 7: orchestrack.docker.CreateContainerRequest.resources:type_name -> orchestrack.docker.ContainerResources
+	25, // 8: orchestrack.docker.ContainerSummary.status:type_name -> orchestrack.docker.ContainerStatus
+	22, // 9: orchestrack.docker.ContainerSummary.ports:type_name -> orchestrack.docker.Port
+	25, // 10: orchestrack.docker.Container.status:type_name -> orchestrack.docker.ContainerStatus
+	21, // 11: orchestrack.docker.Container.env:type_name -> orchestrack.docker.EnvVar
+	22, // 12: orchestrack.docker.Container.ports:type_name -> orchestrack.docker.Port
+	23, // 13: orchestrack.docker.Container.volumes:type_name -> orchestrack.docker.VolumeMount
+	20, // 14: orchestrack.docker.Container.labels:type_name -> orchestrack.docker.Label
+	24, // 15: orchestrack.docker.Container.resources:type_name -> orchestrack.docker.ContainerResources
 	0,  // 16: orchestrack.docker.DockerContainerService.ListContainers:input_type -> orchestrack.docker.ListContainersRequest
 	2,  // 17: orchestrack.docker.DockerContainerService.GetContainer:input_type -> orchestrack.docker.GetContainerRequest
 	4,  // 18: orchestrack.docker.DockerContainerService.CreateContainer:input_type -> orchestrack.docker.CreateContainerRequest
@@ -1329,16 +1469,18 @@ var file_proto_docker_docker_container_proto_depIdxs = []int32{
 	10, // 21: orchestrack.docker.DockerContainerService.RestartContainer:input_type -> orchestrack.docker.RestartContainerRequest
 	12, // 22: orchestrack.docker.DockerContainerService.RenameContainer:input_type -> orchestrack.docker.RenameContainerRequest
 	14, // 23: orchestrack.docker.DockerContainerService.RemoveContainer:input_type -> orchestrack.docker.RemoveContainerRequest
-	1,  // 24: orchestrack.docker.DockerContainerService.ListContainers:output_type -> orchestrack.docker.ListContainersResponse
-	3,  // 25: orchestrack.docker.DockerContainerService.GetContainer:output_type -> orchestrack.docker.GetContainerResponse
-	5,  // 26: orchestrack.docker.DockerContainerService.CreateContainer:output_type -> orchestrack.docker.CreateContainerResponse
-	7,  // 27: orchestrack.docker.DockerContainerService.StartContainer:output_type -> orchestrack.docker.StartContainerResponse
-	9,  // 28: orchestrack.docker.DockerContainerService.StopContainer:output_type -> orchestrack.docker.StopContainerResponse
-	11, // 29: orchestrack.docker.DockerContainerService.RestartContainer:output_type -> orchestrack.docker.RestartContainerResponse
-	13, // 30: orchestrack.docker.DockerContainerService.RenameContainer:output_type -> orchestrack.docker.RenameContainerResponse
-	15, // 31: orchestrack.docker.DockerContainerService.RemoveContainer:output_type -> orchestrack.docker.RemoveContainerResponse
-	24, // [24:32] is the sub-list for method output_type
-	16, // [16:24] is the sub-list for method input_type
+	16, // 24: orchestrack.docker.DockerContainerService.GetContainerLogs:input_type -> orchestrack.docker.GetContainerLogsRequest
+	1,  // 25: orchestrack.docker.DockerContainerService.ListContainers:output_type -> orchestrack.docker.ListContainersResponse
+	3,  // 26: orchestrack.docker.DockerContainerService.GetContainer:output_type -> orchestrack.docker.GetContainerResponse
+	5,  // 27: orchestrack.docker.DockerContainerService.CreateContainer:output_type -> orchestrack.docker.CreateContainerResponse
+	7,  // 28: orchestrack.docker.DockerContainerService.StartContainer:output_type -> orchestrack.docker.StartContainerResponse
+	9,  // 29: orchestrack.docker.DockerContainerService.StopContainer:output_type -> orchestrack.docker.StopContainerResponse
+	11, // 30: orchestrack.docker.DockerContainerService.RestartContainer:output_type -> orchestrack.docker.RestartContainerResponse
+	13, // 31: orchestrack.docker.DockerContainerService.RenameContainer:output_type -> orchestrack.docker.RenameContainerResponse
+	15, // 32: orchestrack.docker.DockerContainerService.RemoveContainer:output_type -> orchestrack.docker.RemoveContainerResponse
+	17, // 33: orchestrack.docker.DockerContainerService.GetContainerLogs:output_type -> orchestrack.docker.GetContainerLogsResponse
+	25, // [25:34] is the sub-list for method output_type
+	16, // [16:25] is the sub-list for method input_type
 	16, // [16:16] is the sub-list for extension type_name
 	16, // [16:16] is the sub-list for extension extendee
 	0,  // [0:16] is the sub-list for field type_name
@@ -1356,7 +1498,7 @@ func file_proto_docker_docker_container_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_docker_docker_container_proto_rawDesc), len(file_proto_docker_docker_container_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -31,6 +31,9 @@ service DockerContainerService {
 
   // Eliminar un contenedor.
   rpc RemoveContainer(RemoveContainerRequest) returns (RemoveContainerResponse);
+
+  // Obtener los logs (stdout/stderr) de un contenedor.
+  rpc GetContainerLogs(GetContainerLogsRequest) returns (GetContainerLogsResponse);
 }
 
 // ---------- ListContainers ----------
@@ -143,6 +146,28 @@ message RemoveContainerRequest {
 
 message RemoveContainerResponse {
   string id = 1;
+}
+
+// ---------- GetContainerLogs ----------
+
+message GetContainerLogsRequest {
+  string id = 1;
+
+  // Número máximo de líneas a devolver desde el final (0 = todas).
+  uint32 tail_lines = 2;
+
+  // Si es true, prefija cada línea con su timestamp.
+  bool timestamps = 3;
+
+  // Si es true, incluye el stream stdout.
+  bool show_stdout = 4;
+
+  // Si es true, incluye el stream stderr.
+  bool show_stderr = 5;
+}
+
+message GetContainerLogsResponse {
+  repeated string lines = 1;
 }
 
 // ---------- Modelos ----------

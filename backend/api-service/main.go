@@ -82,6 +82,8 @@ func BindRoutes(s ports.Server, r *mux.Router) {
 	instances.HandleFunc("/history", handlers.DeviceConnectionHistoryHandler(s)).Methods(http.MethodGet)
 	instances.HandleFunc("/containers", handlers.ListContainersHandler(s)).Methods(http.MethodGet)
 	instances.HandleFunc("/containers/{id}", handlers.GetContainerHandler(s)).Methods(http.MethodGet)
+	instances.HandleFunc("/containers/{id}/events", handlers.ListContainerEventsHandler(s)).Methods(http.MethodGet)
+	instances.HandleFunc("/containers/{id}/logs", handlers.GetContainerLogsHandler(s)).Methods(http.MethodGet)
 	instances.HandleFunc("/containers", handlers.CreateContainerHandler(s)).Methods(http.MethodPost)
 	instances.HandleFunc("/containers/{id}/start", handlers.StartContainerHandler(s)).Methods(http.MethodPost)
 	instances.HandleFunc("/containers/{id}/stop", handlers.StopContainerHandler(s)).Methods(http.MethodPost)

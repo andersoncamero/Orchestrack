@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/go/orchestrack/backend/orchestrack-agent/src/metrics"
 	"github.com/go/orchestrack/backend/orchestrack-agent/src/system"
@@ -52,6 +54,53 @@ func (r *ContainerRepository) GetContainer(ctx context.Context, id string) (*doc
 	}
 
 	return mapContainerToProto(inspect), nil
+}
+
+// GetContainerLogs devuelve las últimas líneas de los logs (stdout/stderr) de un contenedor.
+func (r *ContainerRepository) GetContainerLogs(ctx context.Context, id string, tailLines uint32, timestamps, showStdout, showStderr bool) (*docker.GetContainerLogsResponse, error) {
+	tail := "all"
+	if tailLines > 0 {
+		tail = strconv.FormatUint(uint64(tailLines), 10)
+	}
+
+	// Se inspecciona primero para saber si el stream viene multiplexado (TTY deshabilitado).
+	inspect, err := r.client.ContainerInspect(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	reader, err := r.client.ContainerLogs(ctx, id, container.LogsOptions{
+		ShowStdout: showStdout,
+		ShowStderr: showStderr,
+		Tail:       tail,
+		Timestamps: timestamps,
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+
+	var buf bytes.Buffer
+	if inspect.Config != nil && inspect.Config.Tty {
+		// Con TTY el stream no está multiplexado: se lee tal cual.
+		if _, err := io.Copy(&buf, reader); err != nil {
+			return nil, err
+		}
+	} else if _, err := stdcopy.StdCopy(&buf, &buf, reader); err != nil {
+		// Demultiplexa las cabeceras binarias de 8 bytes preservando el orden del stream.
+		return nil, err
+	}
+
+	return &docker.GetContainerLogsResponse{Lines: splitLogLines(buf.String())}, nil
+}
+
+// splitLogLines divide la salida en líneas descartando las entradas vacías finales.
+func splitLogLines(output string) []string {
+	lines := strings.Split(output, "\n")
+	for len(lines) > 0 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+	return lines
 }
 
 // CreateContainer crea un contenedor sin iniciarlo.
