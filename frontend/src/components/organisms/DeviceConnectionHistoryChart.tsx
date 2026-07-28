@@ -196,17 +196,6 @@ export function DeviceConnectionHistoryChart({
       .slice(0, 5)
   }, [events])
 
-  // Determinar el color del trazo: si todo es activo -> verde, si todo es inactivo -> rojo, si hay mezcla -> gradiente
-  const lineStroke = useMemo(() => {
-    if (!chartData || chartData.length === 0) return '#10b981'
-    const hasActive = chartData.some((d) => d.statusVal === 1)
-    const hasInactive = chartData.some((d) => d.statusVal === 0)
-    if (hasActive && hasInactive) {
-      return 'url(#statusLineGradient)'
-    }
-    return hasActive ? '#10b981' : '#ef4444'
-  }, [chartData])
-
   // Colores adaptativos para Recharts
   const gridStroke = isDark ? '#1e293b' : '#e2e8f0'
   const axisStroke = isDark ? '#64748b' : '#94a3b8'
@@ -306,12 +295,6 @@ export function DeviceConnectionHistoryChart({
           <div className="w-full h-48">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="statusLineGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#ef4444" />
-                  </linearGradient>
-                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
                 <XAxis
                   dataKey="label"
@@ -331,7 +314,7 @@ export function DeviceConnectionHistoryChart({
                 <Line
                   type="stepAfter"
                   dataKey="statusVal"
-                  stroke={lineStroke}
+                  stroke="#10b981"
                   strokeWidth={2.5}
                   dot={renderCustomDot}
                   activeDot={renderActiveDot}
