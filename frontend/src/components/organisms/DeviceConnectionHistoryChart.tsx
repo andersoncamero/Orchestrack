@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { Activity, Clock, WifiOff } from 'lucide-react'
 import {
   ResponsiveContainer,
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -172,7 +172,7 @@ export function DeviceConnectionHistoryChart({
   const axisStroke = isDark ? '#64748b' : '#94a3b8'
   const tickFill = isDark ? '#94a3b8' : '#475569'
 
-  // Renderizado personalizado de puntos: Verde en Activo (1), Rojo en Inactivo (0)
+  // Renderizado personalizado de puntos: Verde para Activo (1) y Rojo para Inactivo (0)
   const renderCustomDot = (props: any) => {
     const { cx, cy, payload } = props
     if (cx === undefined || cy === undefined || !payload) return null
@@ -211,7 +211,7 @@ export function DeviceConnectionHistoryChart({
           </div>
           <div>
             <h3 className="text-(--color-text-main) font-semibold text-base">Historial de Conexión del Equipo</h3>
-            <p className="text-(--color-text-muted) text-xs">Monitoreo de estado y cortes en la línea de tiempo con Recharts</p>
+            <p className="text-(--color-text-muted) text-xs">Monitoreo de estado y cortes en la línea de tiempo con Recharts Simple Line Chart</p>
           </div>
         </div>
 
@@ -233,7 +233,7 @@ export function DeviceConnectionHistoryChart({
         </div>
       </div>
 
-      {/* Gráfico Recharts AreaChart (Step) con Gradiente Verde/Rojo */}
+      {/* Gráfico Recharts personalizado Simple Line Chart */}
       {chartData.length === 0 ? (
         <div className="flex items-center justify-center min-h-[120px] border border-dashed border-(--color-border) rounded-xl bg-(--color-bg-base)/30">
           <p className="text-(--color-text-muted) text-sm flex items-center gap-2">
@@ -244,20 +244,14 @@ export function DeviceConnectionHistoryChart({
         <div className="relative bg-(--color-bg-base) border border-(--color-border) rounded-xl p-4">
           <div className="w-full h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
+              <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
                 <defs>
                   {/* Gradiente del Trazo: Verde en Activo (arriba=1), Rojo en Inactivo (abajo=0) */}
                   <linearGradient id="statusStrokeGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                    <stop offset="15%" stopColor="#10b981" stopOpacity={1} />
-                    <stop offset="85%" stopColor="#ef4444" stopOpacity={1} />
+                    <stop offset="20%" stopColor="#10b981" stopOpacity={1} />
+                    <stop offset="80%" stopColor="#ef4444" stopOpacity={1} />
                     <stop offset="100%" stopColor="#ef4444" stopOpacity={1} />
-                  </linearGradient>
-
-                  {/* Gradiente del Área Verde */}
-                  <linearGradient id="activeAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
@@ -274,16 +268,15 @@ export function DeviceConnectionHistoryChart({
                   tickFormatter={(val) => (val === 1 ? 'Activo' : 'Inactivo')}
                 />
                 <Tooltip content={<CustomTooltip t={t} />} />
-                <Area
+                <Line
                   type="stepAfter"
                   dataKey="statusVal"
                   stroke="url(#statusStrokeGradient)"
-                  strokeWidth={2.5}
-                  fill="url(#activeAreaGradient)"
+                  strokeWidth={3}
                   dot={renderCustomDot}
                   activeDot={{ r: 7, stroke: isDark ? '#0f172a' : '#ffffff', strokeWidth: 2 }}
                 />
-              </AreaChart>
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
