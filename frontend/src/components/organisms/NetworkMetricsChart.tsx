@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import { Spinner } from '../atoms/Spinner'
 import { formatBytes } from '../../utils/time'
+import { useTheme } from '../../contexts/ThemeContext'
 import type { DeviceNetworkMetric } from '../../types'
 
 interface NetworkMetricsChartProps {
@@ -29,17 +30,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     const rttVal = payload[0]?.payload?.rtt || 0
 
     return (
-      <div className="bg-slate-900 border border-slate-700 text-slate-100 p-3 rounded-xl shadow-xl text-xs space-y-1.5 min-w-48">
-        <p className="text-slate-400 font-mono text-[11px] font-semibold">{label}</p>
-        <div className="flex items-center justify-between text-cyan-400 font-medium">
+      <div className="bg-(--color-bg-surface) border border-(--color-border) text-(--color-text-main) p-3 rounded-xl shadow-xl text-xs space-y-1.5 min-w-48">
+        <p className="text-(--color-text-muted) font-mono text-[11px] font-semibold">{label}</p>
+        <div className="flex items-center justify-between text-cyan-500 dark:text-cyan-400 font-medium">
           <span>Descarga (RX):</span>
           <span className="font-bold">{formatBytes(rxVal)}/s</span>
         </div>
-        <div className="flex items-center justify-between text-indigo-400 font-medium">
+        <div className="flex items-center justify-between text-indigo-500 dark:text-indigo-400 font-medium">
           <span>Carga (TX):</span>
           <span className="font-bold">{formatBytes(txVal)}/s</span>
         </div>
-        <div className="flex items-center justify-between text-amber-400 font-medium pt-1 border-t border-slate-800">
+        <div className="flex items-center justify-between text-amber-500 dark:text-amber-400 font-medium pt-1 border-t border-(--color-border)">
           <span>Latencia RTT:</span>
           <span className="font-bold">{rttVal.toFixed(1)} ms</span>
         </div>
@@ -56,6 +57,14 @@ export function NetworkMetricsChart({
   latestRxBytesPerSec = 0,
   latestTxBytesPerSec = 0,
 }: NetworkMetricsChartProps) {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  // Colores dinámicos para Recharts según el modo de la página (Oscuro vs Claro)
+  const gridStroke = isDark ? '#1e293b' : '#e2e8f0'
+  const axisStroke = isDark ? '#64748b' : '#94a3b8'
+  const tickFill = isDark ? '#94a3b8' : '#475569'
+
   // Formatear datos para el gráfico Simple Line Chart de Recharts
   const chartData = useMemo(() => {
     if (!metrics || metrics.length === 0) return []
@@ -103,10 +112,10 @@ export function NetworkMetricsChart({
 
   // Evaluación de estado de Latencia RTT
   const rttStatus = useMemo(() => {
-    if (latestRttMs <= 0) return { label: 'Excelente (<100ms)', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' }
-    if (latestRttMs < 100) return { label: 'Excelente (<100ms)', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' }
-    if (latestRttMs <= 500) return { label: 'Normal (100-500ms)', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' }
-    return { label: 'Latencia Alta (>500ms)', color: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/30' }
+    if (latestRttMs <= 0) return { label: 'Excelente (<100ms)', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' }
+    if (latestRttMs < 100) return { label: 'Excelente (<100ms)', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' }
+    if (latestRttMs <= 500) return { label: 'Normal (100-500ms)', color: 'text-amber-500 dark:text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' }
+    return { label: 'Latencia Alta (>500ms)', color: 'text-rose-500 dark:text-rose-400', bg: 'bg-rose-500/10 border-rose-500/30' }
   }, [latestRttMs])
 
   return (
@@ -115,7 +124,7 @@ export function NetworkMetricsChart({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-(--color-border) pb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
-            <Activity className="w-5 h-5 text-blue-400" />
+            <Activity className="w-5 h-5 text-blue-500 dark:text-blue-400" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-(--color-text-main) flex items-center gap-2">
@@ -128,52 +137,52 @@ export function NetworkMetricsChart({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 text-xs font-semibold">
             <Radio className="w-3.5 h-3.5 animate-pulse" />
             <span>En vivo (WebSocket)</span>
           </div>
         </div>
       </div>
 
-      {/* Tarjetas KPI de Red y Latencia */}
+      {/* Tarjetas KPI de Red y Latencia (Adaptables a modo Claro / Oscuro) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* KPI Descarga RX */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-(--color-bg-base) border border-(--color-border) rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium uppercase tracking-wider">
-              <ArrowDownLeft className="w-4 h-4 text-cyan-400" />
+            <div className="flex items-center gap-1.5 text-xs text-(--color-text-muted) font-medium uppercase tracking-wider">
+              <ArrowDownLeft className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
               <span>Descarga (RX)</span>
             </div>
-            <p className="text-2xl font-bold text-slate-100 mt-1">
+            <p className="text-2xl font-bold text-(--color-text-main) mt-1">
               {formatBytes(latestRxBytesPerSec)}/s
             </p>
           </div>
-          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+          <div className="w-2.5 h-2.5 rounded-full bg-cyan-500 dark:bg-cyan-400" />
         </div>
 
         {/* KPI Carga TX */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-(--color-bg-base) border border-(--color-border) rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium uppercase tracking-wider">
-              <ArrowUpRight className="w-4 h-4 text-indigo-400" />
+            <div className="flex items-center gap-1.5 text-xs text-(--color-text-muted) font-medium uppercase tracking-wider">
+              <ArrowUpRight className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
               <span>Carga (TX)</span>
             </div>
-            <p className="text-2xl font-bold text-slate-100 mt-1">
+            <p className="text-2xl font-bold text-(--color-text-main) mt-1">
               {formatBytes(latestTxBytesPerSec)}/s
             </p>
           </div>
-          <div className="w-2.5 h-2.5 rounded-full bg-indigo-400" />
+          <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
         </div>
 
         {/* KPI Latencia RTT */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-(--color-bg-base) border border-(--color-border) rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium uppercase tracking-wider">
-              <Gauge className="w-4 h-4 text-amber-400" />
+            <div className="flex items-center gap-1.5 text-xs text-(--color-text-muted) font-medium uppercase tracking-wider">
+              <Gauge className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               <span>Latencia RTT</span>
             </div>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold text-slate-100">
+              <span className="text-2xl font-bold text-(--color-text-main)">
                 {latestRttMs >= 0 ? `${latestRttMs.toFixed(1)} ms` : '-'}
               </span>
               <span className={`text-[11px] px-2 py-0.5 rounded-full border ${rttStatus.bg} ${rttStatus.color} font-medium`}>
@@ -191,37 +200,37 @@ export function NetworkMetricsChart({
         </div>
       </div>
 
-      {/* Gráfico Recharts Simple Line Chart */}
-      <div className="relative bg-slate-950/80 border border-slate-800/80 rounded-xl p-5">
+      {/* Gráfico Recharts Simple Line Chart con Fondo Adaptativo */}
+      <div className="relative bg-(--color-bg-base) border border-(--color-border) rounded-xl p-5">
         {loading && (
-          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center z-10 rounded-xl">
+          <div className="absolute inset-0 bg-(--color-bg-base)/80 backdrop-blur-xs flex items-center justify-center z-10 rounded-xl">
             <Spinner size="md" />
           </div>
         )}
 
         <div className="flex items-center justify-between mb-4 px-2">
-          <span className="text-xs font-semibold text-slate-300">
+          <span className="text-xs font-semibold text-(--color-text-main)">
             Flujo de Datos de Red (Throughput)
           </span>
         </div>
 
         {chartData.length === 0 ? (
-          <div className="h-64 flex items-center justify-center text-slate-500 text-sm">
+          <div className="h-64 flex items-center justify-center text-(--color-text-muted) text-sm">
             Esperando métricas de red del servidor...
           </div>
         ) : (
           <div className="w-full h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
                 <XAxis
                   dataKey="timestamp"
-                  stroke="#64748b"
-                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  stroke={axisStroke}
+                  tick={{ fill: tickFill, fontSize: 11 }}
                 />
                 <YAxis
-                  stroke="#64748b"
-                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  stroke={axisStroke}
+                  tick={{ fill: tickFill, fontSize: 11 }}
                   tickFormatter={(val) => `${formatBytes(val)}/s`}
                 />
                 <Tooltip content={<CustomTooltip />} />
@@ -229,18 +238,18 @@ export function NetworkMetricsChart({
                 <Line
                   type="monotone"
                   dataKey="Descarga (RX)"
-                  stroke="#22d3ee"
+                  stroke="#06b6d4"
                   strokeWidth={2.5}
                   dot={false}
-                  activeDot={{ r: 6, fill: '#22d3ee' }}
+                  activeDot={{ r: 6, fill: '#06b6d4' }}
                 />
                 <Line
                   type="monotone"
                   dataKey="Carga (TX)"
-                  stroke="#818cf8"
+                  stroke="#6366f1"
                   strokeWidth={2.5}
                   dot={false}
-                  activeDot={{ r: 6, fill: '#818cf8' }}
+                  activeDot={{ r: 6, fill: '#6366f1' }}
                 />
               </LineChart>
             </ResponsiveContainer>
