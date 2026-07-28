@@ -242,6 +242,37 @@ func subscribeHeartbeats(registry *cache.Registry, history *cache.ConnectionHist
 			}
 		}
 
+		// Persistir métricas de red e inspeccionar picos de latencia RTT (DoD T-007 y T-008)
+		if heartbeat.HostMetrics != nil {
+			netMetric := &models.DeviceNetworkMetric{
+				DeviceID:          heartbeat.ServiceId,
+				RxBytesPerSec:     heartbeat.HostMetrics.RxBytesPerSec,
+				TxBytesPerSec:     heartbeat.HostMetrics.TxBytesPerSec,
+				PacketsRecvPerSec: heartbeat.HostMetrics.PacketsRecvPerSec,
+				PacketsSentPerSec: heartbeat.HostMetrics.PacketsSentPerSec,
+				RttMs:             heartbeat.HostMetrics.RttMs,
+				RecordedAt:        time.Unix(heartbeat.Timestamp, 0),
+			}
+			if err := repository.InsertDeviceNetworkMetric(context.Background(), netMetric); err != nil {
+				logger.Warn("failed to insert device network metric", "service_id", heartbeat.ServiceId, "error", err)
+			}
+
+			// Disparar alerta automática si la latencia RTT supera los 500ms (DoD T-007.4)
+			if heartbeat.HostMetrics.RttMs > 500.0 {
+				alertMsg := fmt.Sprintf("High network latency RTT on server %s: %.2f ms (threshold: 500ms)", heartbeat.Hostname, heartbeat.HostMetrics.RttMs)
+				alert := &models.Alert{
+					DeviceID: heartbeat.ServiceId,
+					Type:     "high_latency",
+					Message:  alertMsg,
+					IsRead:   false,
+				}
+				if err := repository.InsertAlert(context.Background(), alert); err == nil {
+					broadcastEvent(hub, "dashboard", "alert.created", alert)
+					broadcastEvent(hub, "device:"+heartbeat.ServiceId, "alert.created", alert)
+				}
+			}
+		}
+
 		payload := map[string]interface{}{
 			"service_id": heartbeat.ServiceId,
 			"hostname":   heartbeat.Hostname,
@@ -250,9 +281,17 @@ func subscribeHeartbeats(registry *cache.Registry, history *cache.ConnectionHist
 		}
 		if heartbeat.HostMetrics != nil {
 			payload["host_metrics"] = heartbeat.HostMetrics
+			payload["network_metrics"] = map[string]interface{}{
+				"rx_bytes_per_sec":     heartbeat.HostMetrics.RxBytesPerSec,
+				"tx_bytes_per_sec":     heartbeat.HostMetrics.TxBytesPerSec,
+				"packets_recv_per_sec": heartbeat.HostMetrics.PacketsRecvPerSec,
+				"packets_sent_per_sec": heartbeat.HostMetrics.PacketsSentPerSec,
+				"rtt_ms":               heartbeat.HostMetrics.RttMs,
+			}
 		}
 		broadcastEvent(hub, "dashboard", "heartbeat", payload)
 		broadcastEvent(hub, "device:"+heartbeat.ServiceId, "heartbeat", payload)
+		broadcastEvent(hub, "device:"+heartbeat.ServiceId, "network_metrics", payload)
 		
 		if currentStatus != "online" && currentStatus != "pending" && heartbeat.Status == "online" {
 			broadcastEvent(hub, "dashboard", "instance.online", payload)
