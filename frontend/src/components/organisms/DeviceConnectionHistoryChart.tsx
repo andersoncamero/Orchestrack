@@ -82,7 +82,7 @@ export function DeviceConnectionHistoryChart({
     return `${day}/${month}/${year} ${hr}:${min}:${sec}`
   }
 
-  // Procesar muestras con ventana de tiempo móvil absoluta
+  // Procesar métricas y desconexiones reales sin inventar periodos de inactividad previos al registro del servidor
   const chartData = useMemo(() => {
     const now = currentTime
     let minT = now - 24 * 3600
@@ -97,41 +97,73 @@ export function DeviceConnectionHistoryChart({
       return []
     }
 
+    // Ordenar todas las muestras registradas
     const sortedAll = [...samples].sort((a, b) => a.timestamp - b.timestamp)
     const samplesInside = sortedAll.filter((s) => s.timestamp >= minT && s.timestamp <= maxT)
 
-    let initialSample = samplesInside[0] || sortedAll[sortedAll.length - 1]
-    const samplesBefore = sortedAll.filter((s) => s.timestamp < minT)
-    if (samplesBefore.length > 0) {
-      initialSample = samplesBefore[samplesBefore.length - 1]
+    if (samplesInside.length === 0) {
+      return []
     }
 
-    const startSample: ConnectionHistorySample = {
-      timestamp: minT,
-      online: initialSample.online,
-      offline: initialSample.offline,
-      total: initialSample.total,
+    // Determinar inicio del timeline basado en el primer registro real dentro del rango
+    const firstSampleTime = samplesInside[0].timestamp
+    const startPointTime = Math.max(minT, firstSampleTime)
+    const firstStatusVal = samplesInside[0].online > 0 ? 1 : 0
+
+    const startPoint = {
+      timestamp: startPointTime,
+      statusVal: firstStatusVal,
+      isRealDisconnect: false,
     }
 
-    const lastSample = samplesInside[samplesInside.length - 1] || initialSample
-    const currentOnlineCount = currentStatus === 'online' ? 1 : 0
-    const currentTotalCount = currentStatus ? 1 : (lastSample.total > 0 ? 1 : 0)
+    // Set de timestamps exactos de eventos de desconexión
+    const offlineEventTimes = new Set(
+      (events || []).filter((e) => e.type === 'instance.offline').map((e) => e.timestamp)
+    )
 
-    const endSample: ConnectionHistorySample = {
+    const mappedSamples = samplesInside.map((sample, idx) => {
+      const isOnline = sample.online > 0
+      const statusVal = isOnline ? 1 : 0
+      const prevStatusVal = idx > 0 ? (samplesInside[idx - 1].online > 0 ? 1 : 0) : firstStatusVal
+      // Es una desconexión real si la conexión cae de Activo a Inactivo (transición) o coincide con un evento registrado
+      const isRealDisconnect = !isOnline && (prevStatusVal === 1 || offlineEventTimes.has(sample.timestamp))
+
+      return {
+        timestamp: sample.timestamp,
+        statusVal,
+        isRealDisconnect,
+      }
+    })
+
+    const currentOnlineVal = currentStatus === 'online' ? 1 : (currentStatus === 'offline' ? 0 : firstStatusVal)
+    const lastSampleVal = samplesInside[samplesInside.length - 1].online > 0 ? 1 : 0
+    const endPoint = {
       timestamp: maxT,
-      online: currentOnlineCount,
-      offline: currentTotalCount - currentOnlineCount,
-      total: currentTotalCount,
+      statusVal: currentOnlineVal,
+      isRealDisconnect: currentStatus === 'offline' && lastSampleVal === 1,
     }
 
-    const graphSamples = [
-      startSample,
-      ...samplesInside,
-      endSample
-    ]
+    const allPoints = [startPoint, ...mappedSamples, endPoint]
 
-    return graphSamples.map((sample) => {
-      const d = new Date(sample.timestamp * 1000)
+    // Muestreo inteligente: mantener cambios de estado y desconexiones reales, espaciando puntos estables
+    const stepInterval = range === '7d' ? 1800 : range === '30d' ? 3600 * 4 : 300
+    const filteredPoints: typeof allPoints = []
+    let lastKeepTime = 0
+
+    allPoints.forEach((pt, idx) => {
+      const isFirst = idx === 0
+      const isLast = idx === allPoints.length - 1
+      const isStateChange = idx > 0 && pt.statusVal !== allPoints[idx - 1].statusVal
+      const isDisconnect = pt.isRealDisconnect
+
+      if (isFirst || isLast || isStateChange || isDisconnect || (pt.timestamp - lastKeepTime >= stepInterval)) {
+        filteredPoints.push(pt)
+        lastKeepTime = pt.timestamp
+      }
+    })
+
+    return filteredPoints.map((pt) => {
+      const d = new Date(pt.timestamp * 1000)
       const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
       const day = String(d.getDate()).padStart(2, '0')
       const month = String(d.getMonth() + 1).padStart(2, '0')
@@ -145,20 +177,17 @@ export function DeviceConnectionHistoryChart({
           ? `${wd} ${day}/${month}`
           : `${day}/${month}`
 
-      const isOnline = sample.online > 0
-
       return {
-        timestamp: sample.timestamp,
+        timestamp: pt.timestamp,
         label,
-        statusVal: isOnline ? 1 : 0,
-        exactTime: formatExactTime(sample.timestamp),
-        online: sample.online,
-        offline: sample.offline,
+        statusVal: pt.statusVal,
+        isRealDisconnect: pt.isRealDisconnect,
+        exactTime: formatExactTime(pt.timestamp),
       }
     })
-  }, [samples, range, currentStatus, currentTime])
+  }, [samples, events, range, currentStatus, currentTime])
 
-  // Obtener las desconexiones recientes para la lista inferior
+  // Obtener las desconexiones recientes reales para el listado inferior
   const recentDisconnects = useMemo(() => {
     if (!events) return []
     return [...events]
@@ -167,13 +196,45 @@ export function DeviceConnectionHistoryChart({
       .slice(0, 5)
   }, [events])
 
+  // Determinar el color del trazo: si todo es activo -> verde, si todo es inactivo -> rojo, si hay mezcla -> gradiente
+  const lineStroke = useMemo(() => {
+    if (!chartData || chartData.length === 0) return '#10b981'
+    const hasActive = chartData.some((d) => d.statusVal === 1)
+    const hasInactive = chartData.some((d) => d.statusVal === 0)
+    if (hasActive && hasInactive) {
+      return 'url(#statusLineGradient)'
+    }
+    return hasActive ? '#10b981' : '#ef4444'
+  }, [chartData])
+
   // Colores adaptativos para Recharts
   const gridStroke = isDark ? '#1e293b' : '#e2e8f0'
   const axisStroke = isDark ? '#64748b' : '#94a3b8'
   const tickFill = isDark ? '#94a3b8' : '#475569'
 
-  // Renderizado personalizado de puntos: Verde para Activo (1) y Rojo para Inactivo (0)
+  // Renderizar punto rojo ÚNICAMENTE en las desconexiones reales
   const renderCustomDot = (props: any) => {
+    const { cx, cy, payload } = props
+    if (cx === undefined || cy === undefined || !payload) return null
+    
+    if (payload.isRealDisconnect) {
+      return (
+        <circle
+          key={`dot-${payload.timestamp}-${cx}`}
+          cx={cx}
+          cy={cy}
+          r={5}
+          fill="#ef4444"
+          stroke={isDark ? '#0f172a' : '#ffffff'}
+          strokeWidth={2}
+        />
+      )
+    }
+    return null
+  }
+
+  // Renderizar punto activo emergente al pasar el cursor (dinámico: verde si Activo, rojo si Inactivo)
+  const renderActiveDot = (props: any) => {
     const { cx, cy, payload } = props
     if (cx === undefined || cy === undefined || !payload) return null
     const isOnline = payload.statusVal === 1
@@ -181,10 +242,10 @@ export function DeviceConnectionHistoryChart({
 
     return (
       <circle
-        key={`dot-${payload.timestamp}-${cx}`}
+        key={`act-dot-${payload.timestamp}-${cx}`}
         cx={cx}
         cy={cy}
-        r={4}
+        r={6}
         fill={color}
         stroke={isDark ? '#0f172a' : '#ffffff'}
         strokeWidth={2}
@@ -233,7 +294,7 @@ export function DeviceConnectionHistoryChart({
         </div>
       </div>
 
-      {/* Gráfico Recharts personalizado Simple Line Chart */}
+      {/* Gráfico Recharts Simple Line Chart de Desconexiones Reales */}
       {chartData.length === 0 ? (
         <div className="flex items-center justify-center min-h-[120px] border border-dashed border-(--color-border) rounded-xl bg-(--color-bg-base)/30">
           <p className="text-(--color-text-muted) text-sm flex items-center gap-2">
@@ -246,12 +307,9 @@ export function DeviceConnectionHistoryChart({
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
                 <defs>
-                  {/* Gradiente del Trazo: Verde en Activo (arriba=1), Rojo en Inactivo (abajo=0) */}
-                  <linearGradient id="statusStrokeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                    <stop offset="20%" stopColor="#10b981" stopOpacity={1} />
-                    <stop offset="80%" stopColor="#ef4444" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#ef4444" stopOpacity={1} />
+                  <linearGradient id="statusLineGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" />
+                    <stop offset="100%" stopColor="#ef4444" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
@@ -259,6 +317,8 @@ export function DeviceConnectionHistoryChart({
                   dataKey="label"
                   stroke={axisStroke}
                   tick={{ fill: tickFill, fontSize: 11 }}
+                  minTickGap={45}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   stroke={axisStroke}
@@ -271,10 +331,10 @@ export function DeviceConnectionHistoryChart({
                 <Line
                   type="stepAfter"
                   dataKey="statusVal"
-                  stroke="url(#statusStrokeGradient)"
-                  strokeWidth={3}
+                  stroke={lineStroke}
+                  strokeWidth={2.5}
                   dot={renderCustomDot}
-                  activeDot={{ r: 7, stroke: isDark ? '#0f172a' : '#ffffff', strokeWidth: 2 }}
+                  activeDot={renderActiveDot}
                 />
               </LineChart>
             </ResponsiveContainer>

@@ -241,7 +241,7 @@ export function NetworkMetricsChart({
                   stroke="#06b6d4"
                   strokeWidth={2.5}
                   dot={false}
-                  activeDot={{ r: 6, fill: '#06b6d4' }}
+                  activeDot={{ r: 6, fill: '#06b6d4', stroke: isDark ? '#0f172a' : '#ffffff', strokeWidth: 2 }}
                 />
                 <Line
                   type="monotone"
@@ -249,7 +249,7 @@ export function NetworkMetricsChart({
                   stroke="#6366f1"
                   strokeWidth={2.5}
                   dot={false}
-                  activeDot={{ r: 6, fill: '#6366f1' }}
+                  activeDot={{ r: 6, fill: '#6366f1', stroke: isDark ? '#0f172a' : '#ffffff', strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
