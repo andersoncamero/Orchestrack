@@ -820,22 +820,27 @@ func (x *GetSystemInfoResponse) GetInfo() *SystemInfo {
 }
 
 type HostMetrics struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CpuPercent    float64                `protobuf:"fixed64,1,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
-	MemoryTotal   int64                  `protobuf:"varint,2,opt,name=memory_total,json=memoryTotal,proto3" json:"memory_total,omitempty"`
-	MemoryUsed    int64                  `protobuf:"varint,3,opt,name=memory_used,json=memoryUsed,proto3" json:"memory_used,omitempty"`
-	MemoryPercent float64                `protobuf:"fixed64,4,opt,name=memory_percent,json=memoryPercent,proto3" json:"memory_percent,omitempty"`
-	DiskTotal     int64                  `protobuf:"varint,5,opt,name=disk_total,json=diskTotal,proto3" json:"disk_total,omitempty"`
-	DiskUsed      int64                  `protobuf:"varint,6,opt,name=disk_used,json=diskUsed,proto3" json:"disk_used,omitempty"`
-	DiskPercent   float64                `protobuf:"fixed64,7,opt,name=disk_percent,json=diskPercent,proto3" json:"disk_percent,omitempty"`
-	LoadAverage   float64                `protobuf:"fixed64,8,opt,name=load_average,json=loadAverage,proto3" json:"load_average,omitempty"`
-	UptimeSeconds int64                  `protobuf:"varint,9,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
-	CpuCores      int32                  `protobuf:"varint,10,opt,name=cpu_cores,json=cpuCores,proto3" json:"cpu_cores,omitempty"`
-	Platform      string                 `protobuf:"bytes,11,opt,name=platform,proto3" json:"platform,omitempty"`
-	Processes     []*ProcessInfo         `protobuf:"bytes,12,rep,name=processes,proto3" json:"processes,omitempty"`
-	ProcessCount  int32                  `protobuf:"varint,13,opt,name=process_count,json=processCount,proto3" json:"process_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	CpuPercent        float64                `protobuf:"fixed64,1,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
+	MemoryTotal       int64                  `protobuf:"varint,2,opt,name=memory_total,json=memoryTotal,proto3" json:"memory_total,omitempty"`
+	MemoryUsed        int64                  `protobuf:"varint,3,opt,name=memory_used,json=memoryUsed,proto3" json:"memory_used,omitempty"`
+	MemoryPercent     float64                `protobuf:"fixed64,4,opt,name=memory_percent,json=memoryPercent,proto3" json:"memory_percent,omitempty"`
+	DiskTotal         int64                  `protobuf:"varint,5,opt,name=disk_total,json=diskTotal,proto3" json:"disk_total,omitempty"`
+	DiskUsed          int64                  `protobuf:"varint,6,opt,name=disk_used,json=diskUsed,proto3" json:"disk_used,omitempty"`
+	DiskPercent       float64                `protobuf:"fixed64,7,opt,name=disk_percent,json=diskPercent,proto3" json:"disk_percent,omitempty"`
+	LoadAverage       float64                `protobuf:"fixed64,8,opt,name=load_average,json=loadAverage,proto3" json:"load_average,omitempty"`
+	UptimeSeconds     int64                  `protobuf:"varint,9,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
+	CpuCores          int32                  `protobuf:"varint,10,opt,name=cpu_cores,json=cpuCores,proto3" json:"cpu_cores,omitempty"`
+	Platform          string                 `protobuf:"bytes,11,opt,name=platform,proto3" json:"platform,omitempty"`
+	Processes         []*ProcessInfo         `protobuf:"bytes,12,rep,name=processes,proto3" json:"processes,omitempty"`
+	ProcessCount      int32                  `protobuf:"varint,13,opt,name=process_count,json=processCount,proto3" json:"process_count,omitempty"`
+	RxBytesPerSec     float64                `protobuf:"fixed64,14,opt,name=rx_bytes_per_sec,json=rxBytesPerSec,proto3" json:"rx_bytes_per_sec,omitempty"`
+	TxBytesPerSec     float64                `protobuf:"fixed64,15,opt,name=tx_bytes_per_sec,json=txBytesPerSec,proto3" json:"tx_bytes_per_sec,omitempty"`
+	PacketsRecvPerSec float64                `protobuf:"fixed64,16,opt,name=packets_recv_per_sec,json=packetsRecvPerSec,proto3" json:"packets_recv_per_sec,omitempty"`
+	PacketsSentPerSec float64                `protobuf:"fixed64,17,opt,name=packets_sent_per_sec,json=packetsSentPerSec,proto3" json:"packets_sent_per_sec,omitempty"`
+	RttMs             float64                `protobuf:"fixed64,18,opt,name=rtt_ms,json=rttMs,proto3" json:"rtt_ms,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *HostMetrics) Reset() {
@@ -955,6 +960,41 @@ func (x *HostMetrics) GetProcesses() []*ProcessInfo {
 func (x *HostMetrics) GetProcessCount() int32 {
 	if x != nil {
 		return x.ProcessCount
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetRxBytesPerSec() float64 {
+	if x != nil {
+		return x.RxBytesPerSec
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetTxBytesPerSec() float64 {
+	if x != nil {
+		return x.TxBytesPerSec
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetPacketsRecvPerSec() float64 {
+	if x != nil {
+		return x.PacketsRecvPerSec
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetPacketsSentPerSec() float64 {
+	if x != nil {
+		return x.PacketsSentPerSec
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetRttMs() float64 {
+	if x != nil {
+		return x.RttMs
 	}
 	return 0
 }
@@ -1203,7 +1243,7 @@ const file_proto_system_system_proto_rawDesc = "" +
 	"\rremoved_count\x18\x03 \x01(\x05R\fremovedCount\"\x16\n" +
 	"\x14GetSystemInfoRequest\"K\n" +
 	"\x15GetSystemInfoResponse\x122\n" +
-	"\x04info\x18\x01 \x01(\v2\x1e.orchestrack.system.SystemInfoR\x04info\"\xdf\x03\n" +
+	"\x04info\x18\x01 \x01(\v2\x1e.orchestrack.system.SystemInfoR\x04info\"\xaa\x05\n" +
 	"\vHostMetrics\x12\x1f\n" +
 	"\vcpu_percent\x18\x01 \x01(\x01R\n" +
 	"cpuPercent\x12!\n" +
@@ -1221,7 +1261,12 @@ const file_proto_system_system_proto_rawDesc = "" +
 	" \x01(\x05R\bcpuCores\x12\x1a\n" +
 	"\bplatform\x18\v \x01(\tR\bplatform\x12=\n" +
 	"\tprocesses\x18\f \x03(\v2\x1f.orchestrack.system.ProcessInfoR\tprocesses\x12#\n" +
-	"\rprocess_count\x18\r \x01(\x05R\fprocessCount\"\x9e\x01\n" +
+	"\rprocess_count\x18\r \x01(\x05R\fprocessCount\x12'\n" +
+	"\x10rx_bytes_per_sec\x18\x0e \x01(\x01R\rrxBytesPerSec\x12'\n" +
+	"\x10tx_bytes_per_sec\x18\x0f \x01(\x01R\rtxBytesPerSec\x12/\n" +
+	"\x14packets_recv_per_sec\x18\x10 \x01(\x01R\x11packetsRecvPerSec\x12/\n" +
+	"\x14packets_sent_per_sec\x18\x11 \x01(\x01R\x11packetsSentPerSec\x12\x15\n" +
+	"\x06rtt_ms\x18\x12 \x01(\x01R\x05rttMs\"\x9e\x01\n" +
 	"\vProcessInfo\x12\x10\n" +
 	"\x03pid\x18\x01 \x01(\x05R\x03pid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +

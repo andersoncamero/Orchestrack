@@ -223,8 +223,12 @@ func startHeartbeat(serviceID, hostname string, logger *slog.Logger) func() {
 			Timestamp:   time.Now().Unix(),
 			HostMetrics: hostMetrics,
 		}
+		start := time.Now()
 		if err := events.Publish(events.SubjectDockerServiceHeartbeat, event); err != nil {
 			logger.Warn("failed to publish heartbeat", "error", err)
+		} else {
+			rttMs := float64(time.Since(start).Microseconds()) / 1000.0
+			metrics.SetLastRttMs(rttMs)
 		}
 	}
 

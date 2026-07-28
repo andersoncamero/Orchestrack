@@ -117,6 +117,11 @@ message HostMetrics {
   string platform = 11;
   repeated ProcessInfo processes = 12;
   int32 process_count = 13;
+  double rx_bytes_per_sec = 14;
+  double tx_bytes_per_sec = 15;
+  double packets_recv_per_sec = 16;
+  double packets_sent_per_sec = 17;
+  double rtt_ms = 18;
 }
 
 // Información de un proceso del sistema operativo.

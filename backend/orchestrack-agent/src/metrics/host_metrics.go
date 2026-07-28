@@ -1,25 +1,41 @@
 package metrics
 
 import (
-	"github.com/go/orchestrack/backend/proto/system"
 	"context"
 	"fmt"
 	"runtime"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/go/orchestrack/backend/proto/system"
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/host"
 	"github.com/shirou/gopsutil/v4/load"
 	"github.com/shirou/gopsutil/v4/mem"
+	netUtil "github.com/shirou/gopsutil/v4/net"
 	"github.com/shirou/gopsutil/v4/process"
 )
 
 // defaultTopProcessesLimit es la cantidad de procesos más demandantes que se envían en el heartbeat.
 const defaultTopProcessesLimit = 20
+
+var (
+	netMutex        sync.Mutex
+	lastNetCounters *netUtil.IOCountersStat
+	lastNetTime     time.Time
+	lastRttMs       float64
+)
+
+// SetLastRttMs permite registrar la latencia RTT medida en la comunicación NATS.
+func SetLastRttMs(rtt float64) {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+	lastRttMs = rtt
+}
 
 // CollectHostMetrics recolecta métricas del host donde corre docker-service.
 func CollectHostMetrics(ctx context.Context) (*system.HostMetrics, error) {
@@ -70,6 +86,39 @@ func CollectHostMetrics(ctx context.Context) (*system.HostMetrics, error) {
 	if procs, err := collectTopProcesses(ctx, defaultTopProcessesLimit); err == nil {
 		metrics.Processes = procs
 	}
+
+	// Métricas de Red y Latencia RTT.
+	netMutex.Lock()
+	now := time.Now()
+	if counters, err := netUtil.IOCountersWithContext(ctx, false); err == nil && len(counters) > 0 {
+		current := counters[0]
+		if lastNetCounters != nil && !lastNetTime.IsZero() {
+			duration := now.Sub(lastNetTime).Seconds()
+			if duration > 0 {
+				rxDiff := float64(current.BytesRecv - lastNetCounters.BytesRecv)
+				txDiff := float64(current.BytesSent - lastNetCounters.BytesSent)
+				pktRecvDiff := float64(current.PacketsRecv - lastNetCounters.PacketsRecv)
+				pktSentDiff := float64(current.PacketsSent - lastNetCounters.PacketsSent)
+
+				if rxDiff >= 0 {
+					metrics.RxBytesPerSec = rxDiff / duration
+				}
+				if txDiff >= 0 {
+					metrics.TxBytesPerSec = txDiff / duration
+				}
+				if pktRecvDiff >= 0 {
+					metrics.PacketsRecvPerSec = pktRecvDiff / duration
+				}
+				if pktSentDiff >= 0 {
+					metrics.PacketsSentPerSec = pktSentDiff / duration
+				}
+			}
+		}
+		lastNetCounters = &current
+		lastNetTime = now
+	}
+	metrics.RttMs = lastRttMs
+	netMutex.Unlock()
 
 	return metrics, nil
 }
