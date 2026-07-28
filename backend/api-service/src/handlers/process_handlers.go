@@ -6,7 +6,7 @@ import (
 
 	"github.com/go/orchestrack/backend/api-service/src/commander"
 	"github.com/go/orchestrack/backend/api-service/src/ports"
-	"github.com/go/orchestrack/backend/proto/docker"
+	"github.com/go/orchestrack/backend/proto/system"
 	"github.com/gorilla/mux"
 )
 
@@ -28,7 +28,7 @@ func SearchProcessesHandler(s ports.Server) http.HandlerFunc {
 			}
 		}
 
-		resp, err := commander.SearchProcesses(r.Context(), identifier, hostnameRegistry(s), &docker.SearchProcessesRequest{
+		resp, err := commander.SearchProcesses(r.Context(), identifier, hostnameRegistry(s), &system.SearchProcessesRequest{
 			Query:       query,
 			SearchByPid: searchByPID,
 			Limit:       limit,

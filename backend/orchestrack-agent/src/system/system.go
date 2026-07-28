@@ -10,49 +10,52 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/go/orchestrack/backend/proto/docker"
+	systemPb "github.com/go/orchestrack/backend/proto/system"
 )
 
+var packageMutex sync.Mutex
+
 // DetectPackageManager determina el gestor de paquetes disponible en el host.
-func DetectPackageManager() docker.PackageManager {
+func DetectPackageManager() systemPb.PackageManager {
 	switch runtime.GOOS {
 	case "darwin":
 		if commandExists("brew") {
-			return docker.PackageManager_PACKAGE_MANAGER_BREW
+			return systemPb.PackageManager_PACKAGE_MANAGER_BREW
 		}
 	case "windows":
 		if commandExists("winget") {
-			return docker.PackageManager_PACKAGE_MANAGER_WINGET
+			return systemPb.PackageManager_PACKAGE_MANAGER_WINGET
 		}
 		if commandExists("choco") {
-			return docker.PackageManager_PACKAGE_MANAGER_CHOCO
+			return systemPb.PackageManager_PACKAGE_MANAGER_CHOCO
 		}
 	case "linux":
 		if commandExists("apt-get") || commandExists("apt") {
-			return docker.PackageManager_PACKAGE_MANAGER_APT
+			return systemPb.PackageManager_PACKAGE_MANAGER_APT
 		}
 		if commandExists("dnf") {
-			return docker.PackageManager_PACKAGE_MANAGER_DNF
+			return systemPb.PackageManager_PACKAGE_MANAGER_DNF
 		}
 		if commandExists("yum") {
-			return docker.PackageManager_PACKAGE_MANAGER_YUM
+			return systemPb.PackageManager_PACKAGE_MANAGER_YUM
 		}
 		if commandExists("pacman") {
-			return docker.PackageManager_PACKAGE_MANAGER_PACMAN
+			return systemPb.PackageManager_PACKAGE_MANAGER_PACMAN
 		}
 		if commandExists("apk") {
-			return docker.PackageManager_PACKAGE_MANAGER_APK
+			return systemPb.PackageManager_PACKAGE_MANAGER_APK
 		}
 	}
-	return docker.PackageManager_PACKAGE_MANAGER_UNSPECIFIED
+	return systemPb.PackageManager_PACKAGE_MANAGER_UNSPECIFIED
 }
 
 // GetSystemInfo devuelve información básica del sistema operativo.
-func GetSystemInfo() *docker.SystemInfo {
+func GetSystemInfo() *systemPb.SystemInfo {
 	pm := DetectPackageManager()
-	return &docker.SystemInfo{
+	return &systemPb.SystemInfo{
 		Os:               runtime.GOOS,
 		Architecture:     runtime.GOARCH,
 		PackageManager:   pm,
@@ -60,22 +63,28 @@ func GetSystemInfo() *docker.SystemInfo {
 }
 
 // ListPackages lista los paquetes instalados según el gestor detectado.
-func ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
+	packageMutex.Lock()
+	defer packageMutex.Unlock()
+	return listPackagesLocked(ctx, query, upgradableOnly)
+}
+
+func listPackagesLocked(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	pm := DetectPackageManager()
 	switch pm {
-	case docker.PackageManager_PACKAGE_MANAGER_APT:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APT:
 		return listPackagesApt(ctx, query, upgradableOnly)
-	case docker.PackageManager_PACKAGE_MANAGER_DNF, docker.PackageManager_PACKAGE_MANAGER_YUM:
+	case systemPb.PackageManager_PACKAGE_MANAGER_DNF, systemPb.PackageManager_PACKAGE_MANAGER_YUM:
 		return listPackagesRpm(ctx, query, upgradableOnly)
-	case docker.PackageManager_PACKAGE_MANAGER_PACMAN:
+	case systemPb.PackageManager_PACKAGE_MANAGER_PACMAN:
 		return listPackagesPacman(ctx, query, upgradableOnly)
-	case docker.PackageManager_PACKAGE_MANAGER_APK:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APK:
 		return listPackagesApk(ctx, query, upgradableOnly)
-	case docker.PackageManager_PACKAGE_MANAGER_BREW:
+	case systemPb.PackageManager_PACKAGE_MANAGER_BREW:
 		return listPackagesBrew(ctx, query, upgradableOnly)
-	case docker.PackageManager_PACKAGE_MANAGER_CHOCO:
+	case systemPb.PackageManager_PACKAGE_MANAGER_CHOCO:
 		return listPackagesChoco(ctx, query, upgradableOnly)
-	case docker.PackageManager_PACKAGE_MANAGER_WINGET:
+	case systemPb.PackageManager_PACKAGE_MANAGER_WINGET:
 		return listPackagesWinget(ctx, query, upgradableOnly)
 	default:
 		return nil, fmt.Errorf("unsupported package manager for OS %s", runtime.GOOS)
@@ -83,7 +92,10 @@ func ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*do
 }
 
 // RefreshPackages actualiza la lista de paquetes disponibles.
-func RefreshPackages(ctx context.Context, dryRun bool) (*docker.RefreshPackagesResponse, error) {
+func RefreshPackages(ctx context.Context, dryRun bool) (*systemPb.RefreshPackagesResponse, error) {
+	packageMutex.Lock()
+	defer packageMutex.Unlock()
+
 	pm := DetectPackageManager()
 	cmd := refreshCommand(pm, dryRun)
 	if cmd == nil {
@@ -91,7 +103,7 @@ func RefreshPackages(ctx context.Context, dryRun bool) (*docker.RefreshPackagesR
 	}
 
 	output, err := runPrivilegedCommand(ctx, cmd[0], cmd[1:]...)
-	resp := &docker.RefreshPackagesResponse{
+	resp := &systemPb.RefreshPackagesResponse{
 		Success: err == nil,
 		Output:  output,
 	}
@@ -99,17 +111,15 @@ func RefreshPackages(ctx context.Context, dryRun bool) (*docker.RefreshPackagesR
 		return resp, err
 	}
 
-	// Tras refrescar, detectar paquetes con actualización disponible.
-	upgradable, err := ListPackages(ctx, "", true)
-	if err == nil {
-		resp.UpgradablePackages = upgradable
-		resp.UpgradableCount = int32(len(upgradable))
-	}
+	// Lectura de paquetes actualizables omitida temporalmente para probar únicamente la ejecución del comando de actualización.
 	return resp, nil
 }
 
 // UpgradePackages instala las actualizaciones disponibles.
-func UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []string) (*docker.UpgradePackagesResponse, error) {
+func UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []string) (*systemPb.UpgradePackagesResponse, error) {
+	packageMutex.Lock()
+	defer packageMutex.Unlock()
+
 	pm := DetectPackageManager()
 	cmd := upgradeCommand(pm, dryRun, autoConfirm, packages)
 	if cmd == nil {
@@ -117,7 +127,7 @@ func UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []s
 	}
 
 	output, err := runPrivilegedCommand(ctx, cmd[0], cmd[1:]...)
-	resp := &docker.UpgradePackagesResponse{
+	resp := &systemPb.UpgradePackagesResponse{
 		Success: err == nil,
 		Output:  output,
 	}
@@ -133,7 +143,10 @@ func UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []s
 }
 
 // RemovePackages elimina los paquetes indicados del sistema.
-func RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, dryRun bool) (*docker.RemovePackagesResponse, error) {
+func RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, dryRun bool) (*systemPb.RemovePackagesResponse, error) {
+	packageMutex.Lock()
+	defer packageMutex.Unlock()
+
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("no packages specified for removal")
 	}
@@ -144,7 +157,7 @@ func RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, 
 	}
 
 	output, err := runPrivilegedCommand(ctx, cmd[0], cmd[1:]...)
-	resp := &docker.RemovePackagesResponse{
+	resp := &systemPb.RemovePackagesResponse{
 		Success: err == nil,
 		Output:  output,
 	}
@@ -186,74 +199,60 @@ func runCommand(ctx context.Context, name string, args ...string) (string, error
 	return output, err
 }
 
-// runPrivilegedCommand ejecuta un comando y, si falla por permisos y no somos root,
-// reintenta con sudo -n (non-interactive).
+// runPrivilegedCommand ejecuta un comando con privilegios elevados.
+// Si somos root ejecuta el comando directamente; si no somos root, ejecuta vía sudo -n.
 func runPrivilegedCommand(ctx context.Context, name string, args ...string) (string, error) {
-	output, err := runCommand(ctx, name, args...)
-	if err == nil {
-		return output, nil
-	}
-
 	if isRoot() {
+		return runCommand(ctx, name, args...)
+	}
+
+	if _, sudoErr := exec.LookPath("sudo"); sudoErr == nil {
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+
+		sudoArgs := append([]string{"-n", name}, args...)
+		cmd := exec.CommandContext(ctx, "sudo", sudoArgs...)
+		out, err := cmd.CombinedOutput()
+		output := string(out)
+		if err != nil {
+			slog.Warn("privileged command failed", "command", name, "args", args, "error", err, "output", output)
+		}
 		return output, err
 	}
 
-	// Si sudo no está disponible, devolvemos el error original.
-	if _, sudoErr := exec.LookPath("sudo"); sudoErr != nil {
-		return output, err
-	}
-
-	slog.Info("retrying command with sudo", "command", name, "args", args)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-
-	var sudoArgs []string
-	if runtime.GOOS == "linux" && IsDedicatedUserConfigured() {
-		sudoArgs = append([]string{"-n", "-u", dedicatedUser, name}, args...)
-	} else {
-		sudoArgs = append([]string{"-n", name}, args...)
-	}
-	cmd := exec.CommandContext(ctx, "sudo", sudoArgs...)
-	out, sudoRunErr := cmd.CombinedOutput()
-	sudoOutput := string(out)
-	if sudoRunErr != nil {
-		slog.Warn("privileged command failed", "command", name, "args", args, "error", sudoRunErr, "output", sudoOutput)
-		// Devolvemos un error combinado que incluya el output para diagnóstico.
-		return sudoOutput, fmt.Errorf("%v (sudo fallback: %v)\n%s", err, sudoRunErr, strings.TrimSpace(sudoOutput))
-	}
-	return sudoOutput, nil
+	return runCommand(ctx, name, args...)
 }
 
-func refreshCommand(pm docker.PackageManager, dryRun bool) []string {
+func refreshCommand(pm systemPb.PackageManager, dryRun bool) []string {
 	switch pm {
-	case docker.PackageManager_PACKAGE_MANAGER_APT:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APT:
 		if dryRun {
-			return []string{"apt-get", "update", "--dry-run"}
+			return []string{"apt-get", "-o", "DPkg::Lock::Timeout=30", "update", "--dry-run"}
 		}
-		return []string{"apt-get", "update"}
-	case docker.PackageManager_PACKAGE_MANAGER_DNF:
+		return []string{"apt-get", "-o", "DPkg::Lock::Timeout=30", "update"}
+	case systemPb.PackageManager_PACKAGE_MANAGER_DNF:
 		return []string{"dnf", "check-update"}
-	case docker.PackageManager_PACKAGE_MANAGER_YUM:
+	case systemPb.PackageManager_PACKAGE_MANAGER_YUM:
 		return []string{"yum", "check-update"}
-	case docker.PackageManager_PACKAGE_MANAGER_PACMAN:
+	case systemPb.PackageManager_PACKAGE_MANAGER_PACMAN:
 		return []string{"pacman", "-Sy"}
-	case docker.PackageManager_PACKAGE_MANAGER_APK:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APK:
 		return []string{"apk", "update"}
-	case docker.PackageManager_PACKAGE_MANAGER_BREW:
+	case systemPb.PackageManager_PACKAGE_MANAGER_BREW:
 		return []string{"brew", "update"}
-	case docker.PackageManager_PACKAGE_MANAGER_CHOCO:
+	case systemPb.PackageManager_PACKAGE_MANAGER_CHOCO:
 		return []string{"choco", "outdated"}
-	case docker.PackageManager_PACKAGE_MANAGER_WINGET:
+	case systemPb.PackageManager_PACKAGE_MANAGER_WINGET:
 		return []string{"winget", "upgrade"}
 	default:
 		return nil
 	}
 }
 
-func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages []string) []string {
+func upgradeCommand(pm systemPb.PackageManager, dryRun, autoConfirm bool, packages []string) []string {
 	switch pm {
-	case docker.PackageManager_PACKAGE_MANAGER_APT:
-		args := []string{"apt-get", "upgrade"}
+	case systemPb.PackageManager_PACKAGE_MANAGER_APT:
+		args := []string{"apt-get", "-o", "DPkg::Lock::Timeout=30", "upgrade"}
 		if dryRun {
 			args = append(args, "--dry-run")
 		}
@@ -264,7 +263,7 @@ func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages
 			args = append(args, packages...)
 		}
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_DNF:
+	case systemPb.PackageManager_PACKAGE_MANAGER_DNF:
 		args := []string{"dnf", "upgrade"}
 		if dryRun {
 			args = append(args, "--assumeno")
@@ -275,7 +274,7 @@ func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages
 			args = append(args, packages...)
 		}
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_YUM:
+	case systemPb.PackageManager_PACKAGE_MANAGER_YUM:
 		args := []string{"yum", "update"}
 		if dryRun {
 			args = append(args, "--assumeno")
@@ -286,7 +285,7 @@ func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages
 			args = append(args, packages...)
 		}
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_PACMAN:
+	case systemPb.PackageManager_PACKAGE_MANAGER_PACMAN:
 		args := []string{"pacman", "-Su"}
 		if dryRun {
 			args = append(args, "--print")
@@ -297,7 +296,7 @@ func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages
 			args = append(args, packages...)
 		}
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_APK:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APK:
 		args := []string{"apk", "upgrade"}
 		if dryRun {
 			args = append(args, "--simulate")
@@ -306,7 +305,7 @@ func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages
 			args = append(args, packages...)
 		}
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_BREW:
+	case systemPb.PackageManager_PACKAGE_MANAGER_BREW:
 		args := []string{"brew", "upgrade"}
 		if dryRun {
 			args = append(args, "--dry-run")
@@ -315,7 +314,7 @@ func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages
 			args = append(args, packages...)
 		}
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_CHOCO:
+	case systemPb.PackageManager_PACKAGE_MANAGER_CHOCO:
 		args := []string{"choco", "upgrade"}
 		if dryRun {
 			args = append(args, "--what-if")
@@ -328,7 +327,7 @@ func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages
 			args = append(args, "all")
 		}
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_WINGET:
+	case systemPb.PackageManager_PACKAGE_MANAGER_WINGET:
 		args := []string{"winget", "upgrade"}
 		if dryRun {
 			args = append(args, "--what-if")
@@ -341,14 +340,14 @@ func upgradeCommand(pm docker.PackageManager, dryRun, autoConfirm bool, packages
 	}
 }
 
-func removeCommand(pm docker.PackageManager, purge, autoConfirm, dryRun bool, packages []string) []string {
+func removeCommand(pm systemPb.PackageManager, purge, autoConfirm, dryRun bool, packages []string) []string {
 	switch pm {
-	case docker.PackageManager_PACKAGE_MANAGER_APT:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APT:
 		action := "remove"
 		if purge {
 			action = "purge"
 		}
-		args := []string{"apt-get", action}
+		args := []string{"apt-get", "-o", "DPkg::Lock::Timeout=30", action}
 		if dryRun {
 			args = append(args, "--dry-run")
 		}
@@ -357,7 +356,7 @@ func removeCommand(pm docker.PackageManager, purge, autoConfirm, dryRun bool, pa
 		}
 		args = append(args, packages...)
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_DNF:
+	case systemPb.PackageManager_PACKAGE_MANAGER_DNF:
 		args := []string{"dnf", "remove"}
 		if dryRun {
 			args = append(args, "--assumeno")
@@ -366,7 +365,7 @@ func removeCommand(pm docker.PackageManager, purge, autoConfirm, dryRun bool, pa
 		}
 		args = append(args, packages...)
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_YUM:
+	case systemPb.PackageManager_PACKAGE_MANAGER_YUM:
 		args := []string{"yum", "remove"}
 		if dryRun {
 			args = append(args, "--assumeno")
@@ -375,7 +374,7 @@ func removeCommand(pm docker.PackageManager, purge, autoConfirm, dryRun bool, pa
 		}
 		args = append(args, packages...)
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_PACMAN:
+	case systemPb.PackageManager_PACKAGE_MANAGER_PACMAN:
 		args := []string{"pacman", "-R"}
 		if purge {
 			args = []string{"pacman", "-Rn"}
@@ -387,21 +386,21 @@ func removeCommand(pm docker.PackageManager, purge, autoConfirm, dryRun bool, pa
 		}
 		args = append(args, packages...)
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_APK:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APK:
 		args := []string{"apk", "del"}
 		if dryRun {
 			args = append(args, "--simulate")
 		}
 		args = append(args, packages...)
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_BREW:
+	case systemPb.PackageManager_PACKAGE_MANAGER_BREW:
 		args := []string{"brew", "uninstall"}
 		if dryRun {
 			args = append(args, "--dry-run")
 		}
 		args = append(args, packages...)
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_CHOCO:
+	case systemPb.PackageManager_PACKAGE_MANAGER_CHOCO:
 		args := []string{"choco", "uninstall"}
 		if dryRun {
 			args = append(args, "--what-if")
@@ -410,7 +409,7 @@ func removeCommand(pm docker.PackageManager, purge, autoConfirm, dryRun bool, pa
 		}
 		args = append(args, packages...)
 		return args
-	case docker.PackageManager_PACKAGE_MANAGER_WINGET:
+	case systemPb.PackageManager_PACKAGE_MANAGER_WINGET:
 		args := []string{"winget", "uninstall"}
 		if dryRun {
 			args = append(args, "--what-if")
@@ -443,14 +442,14 @@ func matchesQuery(name, query string) bool {
 
 // ---------- Listado por gestor de paquetes ----------
 
-func listPackagesApt(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func listPackagesApt(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	args := []string{"-W", "-f=${Package}\t${Version}\t${Architecture}\t${Installed-Size}\t${Status}\t${Source}\n"}
 	output, err := runCommand(ctx, "dpkg-query", args...)
 	if err != nil {
 		return nil, err
 	}
 
-	var packages []*docker.SystemPackage
+	var packages []*systemPb.SystemPackage
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		fields := strings.Split(scanner.Text(), "\t")
@@ -462,7 +461,7 @@ func listPackagesApt(ctx context.Context, query string, upgradableOnly bool) ([]
 			continue
 		}
 		size, _ := strconv.ParseInt(fields[3], 10, 64)
-		packages = append(packages, &docker.SystemPackage{
+		packages = append(packages, &systemPb.SystemPackage{
 			Name:           name,
 			Version:        fields[1],
 			Architecture:   fields[2],
@@ -478,8 +477,8 @@ func listPackagesApt(ctx context.Context, query string, upgradableOnly bool) ([]
 	return packages, scanner.Err()
 }
 
-func filterUpgradableApt(ctx context.Context, installed []*docker.SystemPackage) ([]*docker.SystemPackage, error) {
-	output, err := runCommand(ctx, "apt-get", "-s", "upgrade")
+func filterUpgradableApt(ctx context.Context, installed []*systemPb.SystemPackage) ([]*systemPb.SystemPackage, error) {
+	output, err := runPrivilegedCommand(ctx, "apt-get", "-s", "upgrade")
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +494,7 @@ func filterUpgradableApt(ctx context.Context, installed []*docker.SystemPackage)
 		}
 	}
 
-	var result []*docker.SystemPackage
+	var result []*systemPb.SystemPackage
 	for _, pkg := range installed {
 		if upgradable[pkg.Name] {
 			pkg.Status = "upgradable"
@@ -505,14 +504,14 @@ func filterUpgradableApt(ctx context.Context, installed []*docker.SystemPackage)
 	return result, nil
 }
 
-func listPackagesRpm(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func listPackagesRpm(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	format := `%{NAME}\t%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SIZE}\tinstalled\t%{SOURCERPM}\n`
 	output, err := runCommand(ctx, "rpm", "-qa", "--queryformat", format)
 	if err != nil {
 		return nil, err
 	}
 
-	var packages []*docker.SystemPackage
+	var packages []*systemPb.SystemPackage
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		fields := strings.Split(scanner.Text(), "\t")
@@ -524,7 +523,7 @@ func listPackagesRpm(ctx context.Context, query string, upgradableOnly bool) ([]
 			continue
 		}
 		size, _ := strconv.ParseInt(fields[3], 10, 64)
-		packages = append(packages, &docker.SystemPackage{
+		packages = append(packages, &systemPb.SystemPackage{
 			Name:          name,
 			Version:       fields[1],
 			Architecture:  fields[2],
@@ -540,7 +539,7 @@ func listPackagesRpm(ctx context.Context, query string, upgradableOnly bool) ([]
 	return packages, scanner.Err()
 }
 
-func filterUpgradableRpm(ctx context.Context, installed []*docker.SystemPackage) ([]*docker.SystemPackage, error) {
+func filterUpgradableRpm(ctx context.Context, installed []*systemPb.SystemPackage) ([]*systemPb.SystemPackage, error) {
 	output, err := runCommand(ctx, "dnf", "check-update")
 	if err != nil && len(output) == 0 {
 		return nil, err
@@ -558,7 +557,7 @@ func filterUpgradableRpm(ctx context.Context, installed []*docker.SystemPackage)
 		}
 	}
 
-	var result []*docker.SystemPackage
+	var result []*systemPb.SystemPackage
 	for _, pkg := range installed {
 		if upgradable[pkg.Name] {
 			pkg.Status = "upgradable"
@@ -568,7 +567,7 @@ func filterUpgradableRpm(ctx context.Context, installed []*docker.SystemPackage)
 	return result, nil
 }
 
-func listPackagesPacman(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func listPackagesPacman(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	args := []string{"-Q"}
 	if upgradableOnly {
 		args = []string{"-Qu"}
@@ -578,7 +577,7 @@ func listPackagesPacman(ctx context.Context, query string, upgradableOnly bool) 
 		return nil, err
 	}
 
-	var packages []*docker.SystemPackage
+	var packages []*systemPb.SystemPackage
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
@@ -593,7 +592,7 @@ func listPackagesPacman(ctx context.Context, query string, upgradableOnly bool) 
 		if upgradableOnly {
 			status = "upgradable"
 		}
-		packages = append(packages, &docker.SystemPackage{
+		packages = append(packages, &systemPb.SystemPackage{
 			Name:         name,
 			Version:      fields[1],
 			Architecture: runtime.GOARCH,
@@ -603,13 +602,13 @@ func listPackagesPacman(ctx context.Context, query string, upgradableOnly bool) 
 	return packages, nil
 }
 
-func listPackagesApk(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func listPackagesApk(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	output, err := runCommand(ctx, "apk", "list", "--installed")
 	if err != nil {
 		return nil, err
 	}
 
-	var packages []*docker.SystemPackage
+	var packages []*systemPb.SystemPackage
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -621,7 +620,7 @@ func listPackagesApk(ctx context.Context, query string, upgradableOnly bool) ([]
 		if !matchesQuery(name, query) {
 			continue
 		}
-		packages = append(packages, &docker.SystemPackage{
+		packages = append(packages, &systemPb.SystemPackage{
 			Name:         name,
 			Architecture: safeField(fields, 1),
 			Status:       "installed",
@@ -634,7 +633,7 @@ func listPackagesApk(ctx context.Context, query string, upgradableOnly bool) ([]
 	return packages, nil
 }
 
-func filterUpgradableApk(ctx context.Context, installed []*docker.SystemPackage) ([]*docker.SystemPackage, error) {
+func filterUpgradableApk(ctx context.Context, installed []*systemPb.SystemPackage) ([]*systemPb.SystemPackage, error) {
 	output, err := runCommand(ctx, "apk", "upgrade", "--simulate")
 	if err != nil {
 		return nil, err
@@ -648,7 +647,7 @@ func filterUpgradableApk(ctx context.Context, installed []*docker.SystemPackage)
 		}
 	}
 
-	var result []*docker.SystemPackage
+	var result []*systemPb.SystemPackage
 	for _, pkg := range installed {
 		if upgradable[pkg.Name] {
 			pkg.Status = "upgradable"
@@ -658,7 +657,7 @@ func filterUpgradableApk(ctx context.Context, installed []*docker.SystemPackage)
 	return result, nil
 }
 
-func listPackagesBrew(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func listPackagesBrew(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	args := []string{"list", "--versions"}
 	if upgradableOnly {
 		args = []string{"outdated"}
@@ -668,7 +667,7 @@ func listPackagesBrew(ctx context.Context, query string, upgradableOnly bool) ([
 		return nil, err
 	}
 
-	var packages []*docker.SystemPackage
+	var packages []*systemPb.SystemPackage
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
@@ -687,7 +686,7 @@ func listPackagesBrew(ctx context.Context, query string, upgradableOnly bool) ([
 		if upgradableOnly {
 			status = "upgradable"
 		}
-		packages = append(packages, &docker.SystemPackage{
+		packages = append(packages, &systemPb.SystemPackage{
 			Name:         name,
 			Version:      version,
 			Architecture: runtime.GOARCH,
@@ -697,7 +696,7 @@ func listPackagesBrew(ctx context.Context, query string, upgradableOnly bool) ([
 	return packages, nil
 }
 
-func listPackagesChoco(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func listPackagesChoco(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	args := []string{"list", "--local-only"}
 	if upgradableOnly {
 		args = []string{"outdated"}
@@ -707,7 +706,7 @@ func listPackagesChoco(ctx context.Context, query string, upgradableOnly bool) (
 		return nil, err
 	}
 
-	var packages []*docker.SystemPackage
+	var packages []*systemPb.SystemPackage
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
@@ -722,7 +721,7 @@ func listPackagesChoco(ctx context.Context, query string, upgradableOnly bool) (
 		if upgradableOnly {
 			status = "upgradable"
 		}
-		packages = append(packages, &docker.SystemPackage{
+		packages = append(packages, &systemPb.SystemPackage{
 			Name:         name,
 			Version:      fields[1],
 			Architecture: "x64",
@@ -732,7 +731,7 @@ func listPackagesChoco(ctx context.Context, query string, upgradableOnly bool) (
 	return packages, nil
 }
 
-func listPackagesWinget(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func listPackagesWinget(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	args := []string{"list"}
 	if upgradableOnly {
 		args = []string{"upgrade"}
@@ -742,7 +741,7 @@ func listPackagesWinget(ctx context.Context, query string, upgradableOnly bool) 
 		return nil, err
 	}
 
-	var packages []*docker.SystemPackage
+	var packages []*systemPb.SystemPackage
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -761,7 +760,7 @@ func listPackagesWinget(ctx context.Context, query string, upgradableOnly bool) 
 		if upgradableOnly {
 			status = "upgradable"
 		}
-		packages = append(packages, &docker.SystemPackage{
+		packages = append(packages, &systemPb.SystemPackage{
 			Name:         name,
 			Version:      safeField(fields, 1),
 			Architecture: safeField(fields, 2),

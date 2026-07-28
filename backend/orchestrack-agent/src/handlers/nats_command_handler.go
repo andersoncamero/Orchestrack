@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/go/orchestrack/backend/proto/system"
 	"context"
 	"fmt"
 	"log/slog"
@@ -294,7 +295,7 @@ func (h *NATSCommandHandler) handleRemoveContainer(ctx context.Context, data []b
 }
 
 func (h *NATSCommandHandler) handleListPackages(ctx context.Context, data []byte) ([]byte, error) {
-	var req docker.ListPackagesRequest
+	var req system.ListPackagesRequest
 	if err := proto.Unmarshal(data, &req); err != nil {
 		return nil, err
 	}
@@ -302,11 +303,11 @@ func (h *NATSCommandHandler) handleListPackages(ctx context.Context, data []byte
 	if err != nil {
 		return nil, err
 	}
-	return proto.Marshal(&docker.ListPackagesResponse{Packages: resp, Total: int32(len(resp))})
+	return proto.Marshal(&system.ListPackagesResponse{Packages: resp, Total: int32(len(resp))})
 }
 
 func (h *NATSCommandHandler) handleRefreshPackages(ctx context.Context, data []byte) ([]byte, error) {
-	var req docker.RefreshPackagesRequest
+	var req system.RefreshPackagesRequest
 	if err := proto.Unmarshal(data, &req); err != nil {
 		return nil, err
 	}
@@ -318,7 +319,7 @@ func (h *NATSCommandHandler) handleRefreshPackages(ctx context.Context, data []b
 }
 
 func (h *NATSCommandHandler) handleUpgradePackages(ctx context.Context, data []byte) ([]byte, error) {
-	var req docker.UpgradePackagesRequest
+	var req system.UpgradePackagesRequest
 	if err := proto.Unmarshal(data, &req); err != nil {
 		return nil, err
 	}
@@ -330,7 +331,7 @@ func (h *NATSCommandHandler) handleUpgradePackages(ctx context.Context, data []b
 }
 
 func (h *NATSCommandHandler) handleRemovePackages(ctx context.Context, data []byte) ([]byte, error) {
-	var req docker.RemovePackagesRequest
+	var req system.RemovePackagesRequest
 	if err := proto.Unmarshal(data, &req); err != nil {
 		return nil, err
 	}
@@ -342,11 +343,11 @@ func (h *NATSCommandHandler) handleRemovePackages(ctx context.Context, data []by
 }
 
 func (h *NATSCommandHandler) handleGetSystemInfo(ctx context.Context, data []byte) ([]byte, error) {
-	return proto.Marshal(&docker.GetSystemInfoResponse{Info: repository.GetSystemInfo()})
+	return proto.Marshal(&system.GetSystemInfoResponse{Info: repository.GetSystemInfo()})
 }
 
 func (h *NATSCommandHandler) handleSearchProcesses(ctx context.Context, data []byte) ([]byte, error) {
-	var req docker.SearchProcessesRequest
+	var req system.SearchProcessesRequest
 	if err := proto.Unmarshal(data, &req); err != nil {
 		return nil, err
 	}

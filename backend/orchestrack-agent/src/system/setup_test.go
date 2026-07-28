@@ -1,21 +1,21 @@
 package system
 
 import (
+	systemPb "github.com/go/orchestrack/backend/proto/system"
 	"testing"
 
-	"github.com/go/orchestrack/backend/proto/docker"
 )
 
 func TestBuildSudoersLines(t *testing.T) {
 	tests := []struct {
 		name     string
-		pm       docker.PackageManager
+		pm       systemPb.PackageManager
 		want     []string
 		wantLen  int
 	}{
 		{
 			name:    "apt",
-			pm:      docker.PackageManager_PACKAGE_MANAGER_APT,
+			pm:      systemPb.PackageManager_PACKAGE_MANAGER_APT,
 			wantLen: 2,
 			want: []string{
 				"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/apt-get",
@@ -24,7 +24,7 @@ func TestBuildSudoersLines(t *testing.T) {
 		},
 		{
 			name:    "dnf",
-			pm:      docker.PackageManager_PACKAGE_MANAGER_DNF,
+			pm:      systemPb.PackageManager_PACKAGE_MANAGER_DNF,
 			wantLen: 2,
 			want: []string{
 				"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/dnf",
@@ -33,7 +33,7 @@ func TestBuildSudoersLines(t *testing.T) {
 		},
 		{
 			name:    "yum",
-			pm:      docker.PackageManager_PACKAGE_MANAGER_YUM,
+			pm:      systemPb.PackageManager_PACKAGE_MANAGER_YUM,
 			wantLen: 2,
 			want: []string{
 				"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/yum",
@@ -42,7 +42,7 @@ func TestBuildSudoersLines(t *testing.T) {
 		},
 		{
 			name:    "pacman",
-			pm:      docker.PackageManager_PACKAGE_MANAGER_PACMAN,
+			pm:      systemPb.PackageManager_PACKAGE_MANAGER_PACMAN,
 			wantLen: 1,
 			want: []string{
 				"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/pacman",
@@ -50,7 +50,7 @@ func TestBuildSudoersLines(t *testing.T) {
 		},
 		{
 			name:    "apk",
-			pm:      docker.PackageManager_PACKAGE_MANAGER_APK,
+			pm:      systemPb.PackageManager_PACKAGE_MANAGER_APK,
 			wantLen: 1,
 			want: []string{
 				"orchestrack-agent ALL=(ALL) NOPASSWD: /sbin/apk",
@@ -58,13 +58,13 @@ func TestBuildSudoersLines(t *testing.T) {
 		},
 		{
 			name:    "unspecified",
-			pm:      docker.PackageManager_PACKAGE_MANAGER_UNSPECIFIED,
+			pm:      systemPb.PackageManager_PACKAGE_MANAGER_UNSPECIFIED,
 			wantLen: 0,
 			want:    nil,
 		},
 		{
 			name:    "brew",
-			pm:      docker.PackageManager_PACKAGE_MANAGER_BREW,
+			pm:      systemPb.PackageManager_PACKAGE_MANAGER_BREW,
 			wantLen: 0,
 			want:    nil,
 		},

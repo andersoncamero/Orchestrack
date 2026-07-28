@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/go/orchestrack/backend/proto/system"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -52,7 +53,7 @@ func ListInstancesHandler(s ports.Server) http.HandlerFunc {
 			Hostname          string              `json:"Hostname"`
 			Status            string              `json:"Status"`
 			LastSeen          int64               `json:"LastSeen"`
-			HostMetrics       *docker.HostMetrics `json:"HostMetrics,omitempty"`
+			HostMetrics       *system.HostMetrics `json:"HostMetrics,omitempty"`
 			TotalContainers   int                 `json:"TotalContainers"`
 			RunningContainers int                 `json:"RunningContainers"`
 			StoppedContainers int                 `json:"StoppedContainers"`
@@ -62,7 +63,7 @@ func ListInstancesHandler(s ports.Server) http.HandlerFunc {
 		response := make([]DeviceResponse, 0, len(dbDevices))
 		for _, dev := range dbDevices {
 			status := dev.Status
-			var hostMetrics *docker.HostMetrics
+			var hostMetrics *system.HostMetrics
 			if status != "pending" {
 				if cachedSvc, ok := s.Registry().Get(dev.ServiceID); !ok {
 					status = "offline"
@@ -73,7 +74,7 @@ func ListInstancesHandler(s ports.Server) http.HandlerFunc {
 			}
 
 			if hostMetrics == nil {
-				hostMetrics = &docker.HostMetrics{
+				hostMetrics = &system.HostMetrics{
 					CpuPercent:    dev.CpuPercent,
 					MemoryPercent: dev.MemoryPercent,
 					DiskPercent:   dev.DiskPercent,

@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/go/orchestrack/backend/proto/docker"
+	systemPb "github.com/go/orchestrack/backend/proto/system"
 )
 
-// Repository define las operaciones disponibles sobre contenedores Docker.
+// Repository define las operaciones disponibles sobre contenedores Docker y sistema.
 type Repository interface {
 	ListContainers(ctx context.Context, all bool) ([]*docker.ContainerSummary, error)
 	GetContainer(ctx context.Context, id string) (*docker.Container, error)
@@ -22,14 +23,14 @@ type Repository interface {
 	RemoveImage(ctx context.Context, id string, force, pruneChildren bool) ([]string, error)
 
 	// System/package operations.
-	ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error)
-	RefreshPackages(ctx context.Context, dryRun bool) (*docker.RefreshPackagesResponse, error)
-	UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []string) (*docker.UpgradePackagesResponse, error)
-	RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, dryRun bool) (*docker.RemovePackagesResponse, error)
-	GetSystemInfo() *docker.SystemInfo
+	ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error)
+	RefreshPackages(ctx context.Context, dryRun bool) (*systemPb.RefreshPackagesResponse, error)
+	UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []string) (*systemPb.UpgradePackagesResponse, error)
+	RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, dryRun bool) (*systemPb.RemovePackagesResponse, error)
+	GetSystemInfo() *systemPb.SystemInfo
 
 	// Process operations.
-	SearchProcesses(ctx context.Context, query string, searchByPID bool, limit int32) (*docker.SearchProcessesResponse, error)
+	SearchProcesses(ctx context.Context, query string, searchByPID bool, limit int32) (*systemPb.SearchProcessesResponse, error)
 
 	Close() error
 }
@@ -102,32 +103,32 @@ func RemoveImage(ctx context.Context, id string, force, pruneChildren bool) ([]s
 }
 
 // ListPackages delega en la implementación inyectada.
-func ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
+func ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
 	return implementation.ListPackages(ctx, query, upgradableOnly)
 }
 
 // RefreshPackages delega en la implementación inyectada.
-func RefreshPackages(ctx context.Context, dryRun bool) (*docker.RefreshPackagesResponse, error) {
+func RefreshPackages(ctx context.Context, dryRun bool) (*systemPb.RefreshPackagesResponse, error) {
 	return implementation.RefreshPackages(ctx, dryRun)
 }
 
 // UpgradePackages delega en la implementación inyectada.
-func UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []string) (*docker.UpgradePackagesResponse, error) {
+func UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []string) (*systemPb.UpgradePackagesResponse, error) {
 	return implementation.UpgradePackages(ctx, dryRun, autoConfirm, packages)
 }
 
 // RemovePackages delega en la implementación inyectada.
-func RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, dryRun bool) (*docker.RemovePackagesResponse, error) {
+func RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, dryRun bool) (*systemPb.RemovePackagesResponse, error) {
 	return implementation.RemovePackages(ctx, packages, purge, autoConfirm, dryRun)
 }
 
 // GetSystemInfo delega en la implementación inyectada.
-func GetSystemInfo() *docker.SystemInfo {
+func GetSystemInfo() *systemPb.SystemInfo {
 	return implementation.GetSystemInfo()
 }
 
 // SearchProcesses delega en la implementación inyectada.
-func SearchProcesses(ctx context.Context, query string, searchByPID bool, limit int32) (*docker.SearchProcessesResponse, error) {
+func SearchProcesses(ctx context.Context, query string, searchByPID bool, limit int32) (*systemPb.SearchProcessesResponse, error) {
 	return implementation.SearchProcesses(ctx, query, searchByPID, limit)
 }
 

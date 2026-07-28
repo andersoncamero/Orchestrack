@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go/orchestrack/backend/proto/docker"
+	"github.com/go/orchestrack/backend/proto/system"
 )
 
 // DockerServiceInfo representa una instancia registrada de docker-service.
@@ -13,7 +13,7 @@ type DockerServiceInfo struct {
 	Hostname    string
 	Status      string
 	LastSeen    int64
-	HostMetrics *docker.HostMetrics
+	HostMetrics *system.HostMetrics
 }
 
 // Registry mantiene el listado de docker-service activos.

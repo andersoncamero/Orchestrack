@@ -42,8 +42,21 @@ func (h *terminalHandler) WithGroup(_ string) slog.Handler {
 	return h
 }
 
+func isTerminal(w io.Writer) bool {
+	if f, ok := w.(*os.File); ok {
+		stat, err := f.Stat()
+		if err == nil && (stat.Mode()&os.ModeCharDevice) != 0 {
+			return true
+		}
+	}
+	return false
+}
+
 func (h *terminalHandler) Handle(_ context.Context, r slog.Record) error {
-	// Símbolo e color según nivel
+	useColor := isTerminal(h.writer)
+	timeStr := r.Time.Format("2006-01-02 15:04:05.000")
+
+	// Símbolo y color según nivel
 	var symbol, levelColor string
 	switch r.Level {
 	case slog.LevelDebug:
@@ -63,13 +76,25 @@ func (h *terminalHandler) Handle(_ context.Context, r slog.Record) error {
 		levelColor = ansiGray
 	}
 
+	if !useColor {
+		levelColor = ""
+	}
+
 	// Construir pares clave=valor de los atributos
 	var extras []string
 	for _, attr := range h.attrs {
-		extras = append(extras, fmt.Sprintf("%s%s%s=%v", ansiGray, attr.Key, ansiReset, attr.Value))
+		if useColor {
+			extras = append(extras, fmt.Sprintf("%s%s%s=%v", ansiGray, attr.Key, ansiReset, attr.Value))
+		} else {
+			extras = append(extras, fmt.Sprintf("%s=%v", attr.Key, attr.Value))
+		}
 	}
 	r.Attrs(func(a slog.Attr) bool {
-		extras = append(extras, fmt.Sprintf("%s%s%s=%v", ansiGray, a.Key, ansiReset, a.Value))
+		if useColor {
+			extras = append(extras, fmt.Sprintf("%s%s%s=%v", ansiGray, a.Key, ansiReset, a.Value))
+		} else {
+			extras = append(extras, fmt.Sprintf("%s=%v", a.Key, a.Value))
+		}
 		return true
 	})
 
@@ -78,17 +103,28 @@ func (h *terminalHandler) Handle(_ context.Context, r slog.Record) error {
 		suffix = "  " + strings.Join(extras, "  ")
 	}
 
-	line := fmt.Sprintf("%s%s%s %s%s%s%s\n",
-		levelColor, symbol, ansiReset,
-		ansiBold, r.Message, ansiReset,
-		suffix,
-	)
+	var line string
+	if useColor {
+		line = fmt.Sprintf("%s%s%s %s%s%s %s%s%s%s\n",
+			ansiGray, timeStr, ansiReset,
+			levelColor, symbol, ansiReset,
+			ansiBold, r.Message, ansiReset,
+			suffix,
+		)
+	} else {
+		line = fmt.Sprintf("%s [%s] %s%s\n",
+			timeStr,
+			r.Level.String(),
+			r.Message,
+			suffix,
+		)
+	}
 
 	_, err := fmt.Fprint(h.writer, line)
 	return err
 }
 
-// NewLogger crea un logger con el nivel indicado y salida legible en terminal.
+// NewLogger crea un logger con el nivel indicado y salida legible en terminal o archivo.
 func NewLogger(level string) *slog.Logger {
 	var logLevel slog.Level
 	switch level {
@@ -103,6 +139,8 @@ func NewLogger(level string) *slog.Logger {
 	}
 
 	handler := &terminalHandler{level: logLevel, writer: os.Stdout}
-	return slog.New(handler)
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+	return logger
 }
 

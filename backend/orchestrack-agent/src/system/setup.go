@@ -1,6 +1,7 @@
 package system
 
 import (
+	systemPb "github.com/go/orchestrack/backend/proto/system"
 	"fmt"
 	"log/slog"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/go/orchestrack/backend/proto/docker"
 )
 
 const dedicatedUser = "orchestrack-agent"
@@ -72,7 +72,7 @@ func EnsureDedicatedUser(logger *slog.Logger) error {
 }
 
 // ConfigureSudoers crea el archivo sudoers.d para el usuario dedicado (Linux + root).
-func ConfigureSudoers(pm docker.PackageManager, logger *slog.Logger) error {
+func ConfigureSudoers(pm systemPb.PackageManager, logger *slog.Logger) error {
 	if runtime.GOOS != "linux" {
 		return nil
 	}
@@ -107,28 +107,28 @@ func IsDedicatedUserConfigured() bool {
 
 // buildSudoersLines genera las líneas de sudoers según el gestor de paquetes.
 // Es una función pura para facilitar el testing.
-func buildSudoersLines(pm docker.PackageManager) []string {
+func buildSudoersLines(pm systemPb.PackageManager) []string {
 	switch pm {
-	case docker.PackageManager_PACKAGE_MANAGER_APT:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APT:
 		return []string{
 			"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/apt-get",
 			"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/dpkg-query",
 		}
-	case docker.PackageManager_PACKAGE_MANAGER_DNF:
+	case systemPb.PackageManager_PACKAGE_MANAGER_DNF:
 		return []string{
 			"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/dnf",
 			"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/rpm",
 		}
-	case docker.PackageManager_PACKAGE_MANAGER_YUM:
+	case systemPb.PackageManager_PACKAGE_MANAGER_YUM:
 		return []string{
 			"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/yum",
 			"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/rpm",
 		}
-	case docker.PackageManager_PACKAGE_MANAGER_PACMAN:
+	case systemPb.PackageManager_PACKAGE_MANAGER_PACMAN:
 		return []string{
 			"orchestrack-agent ALL=(ALL) NOPASSWD: /usr/bin/pacman",
 		}
-	case docker.PackageManager_PACKAGE_MANAGER_APK:
+	case systemPb.PackageManager_PACKAGE_MANAGER_APK:
 		return []string{
 			"orchestrack-agent ALL=(ALL) NOPASSWD: /sbin/apk",
 		}

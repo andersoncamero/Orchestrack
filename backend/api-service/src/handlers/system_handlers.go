@@ -6,7 +6,7 @@ import (
 
 	"github.com/go/orchestrack/backend/api-service/src/commander"
 	"github.com/go/orchestrack/backend/api-service/src/ports"
-	"github.com/go/orchestrack/backend/proto/docker"
+	"github.com/go/orchestrack/backend/proto/system"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +17,7 @@ func ListPackagesHandler(s ports.Server) http.HandlerFunc {
 		query := r.URL.Query().Get("q")
 		upgradableOnly := r.URL.Query().Get("upgradable") == "true"
 
-		resp, err := commander.ListPackages(r.Context(), identifier, hostnameRegistry(s), &docker.ListPackagesRequest{
+		resp, err := commander.ListPackages(r.Context(), identifier, hostnameRegistry(s), &system.ListPackagesRequest{
 			Query:          query,
 			UpgradableOnly: upgradableOnly,
 		})
@@ -39,7 +39,7 @@ func RefreshPackagesHandler(s ports.Server) http.HandlerFunc {
 		}
 		_ = json.NewDecoder(r.Body).Decode(&body)
 
-		resp, err := commander.RefreshPackages(r.Context(), identifier, hostnameRegistry(s), &docker.RefreshPackagesRequest{
+		resp, err := commander.RefreshPackages(r.Context(), identifier, hostnameRegistry(s), &system.RefreshPackagesRequest{
 			DryRun: body.DryRun,
 		})
 		if err != nil {
@@ -55,7 +55,7 @@ func UpgradePackagesHandler(s ports.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		identifier := mux.Vars(r)["identifier"]
 
-		var req docker.UpgradePackagesRequest
+		var req system.UpgradePackagesRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -75,7 +75,7 @@ func RemovePackagesHandler(s ports.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		identifier := mux.Vars(r)["identifier"]
 
-		var req docker.RemovePackagesRequest
+		var req system.RemovePackagesRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -95,7 +95,7 @@ func GetSystemInfoHandler(s ports.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		identifier := mux.Vars(r)["identifier"]
 
-		resp, err := commander.GetSystemInfo(r.Context(), identifier, hostnameRegistry(s), &docker.GetSystemInfoRequest{})
+		resp, err := commander.GetSystemInfo(r.Context(), identifier, hostnameRegistry(s), &system.GetSystemInfoRequest{})
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return

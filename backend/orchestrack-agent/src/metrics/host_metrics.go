@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"github.com/go/orchestrack/backend/proto/system"
 	"context"
 	"fmt"
 	"runtime"
@@ -9,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go/orchestrack/backend/proto/docker"
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/host"
@@ -22,8 +22,8 @@ import (
 const defaultTopProcessesLimit = 20
 
 // CollectHostMetrics recolecta métricas del host donde corre docker-service.
-func CollectHostMetrics(ctx context.Context) (*docker.HostMetrics, error) {
-	metrics := &docker.HostMetrics{
+func CollectHostMetrics(ctx context.Context) (*system.HostMetrics, error) {
+	metrics := &system.HostMetrics{
 		Platform: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
 
@@ -76,13 +76,13 @@ func CollectHostMetrics(ctx context.Context) (*docker.HostMetrics, error) {
 
 // collectTopProcesses obtiene los procesos más demandantes del host ordenados por un score
 // combinado de CPU + memoria. El límite por defecto es 20 para mantener los heartbeats ligeros.
-func collectTopProcesses(ctx context.Context, limit int) ([]*docker.ProcessInfo, error) {
+func collectTopProcesses(ctx context.Context, limit int) ([]*system.ProcessInfo, error) {
 	pids, err := process.PidsWithContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	items := make([]*docker.ProcessInfo, 0, len(pids))
+	items := make([]*system.ProcessInfo, 0, len(pids))
 	for _, pid := range pids {
 		p, err := process.NewProcessWithContext(ctx, pid)
 		if err != nil {
@@ -109,7 +109,7 @@ func collectTopProcesses(ctx context.Context, limit int) ([]*docker.ProcessInfo,
 			continue
 		}
 
-		items = append(items, &docker.ProcessInfo{
+		items = append(items, &system.ProcessInfo{
 			Pid:           pid,
 			Name:          name,
 			CpuPercent:    cpuPct,
@@ -134,7 +134,7 @@ func collectTopProcesses(ctx context.Context, limit int) ([]*docker.ProcessInfo,
 
 // SearchProcesses busca procesos en el host por nombre (substring, case-insensitive)
 // o por PID exacto. Devuelve hasta `limit` resultados ordenados por score combinado.
-func SearchProcesses(ctx context.Context, query string, searchByPID bool, limit int) ([]*docker.ProcessInfo, int32, error) {
+func SearchProcesses(ctx context.Context, query string, searchByPID bool, limit int) ([]*system.ProcessInfo, int32, error) {
 	pids, err := process.PidsWithContext(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -152,7 +152,7 @@ func SearchProcesses(ctx context.Context, query string, searchByPID bool, limit 
 		}
 	}
 
-	items := make([]*docker.ProcessInfo, 0)
+	items := make([]*system.ProcessInfo, 0)
 	for _, pid := range pids {
 		p, err := process.NewProcessWithContext(ctx, pid)
 		if err != nil {
@@ -194,7 +194,7 @@ func SearchProcesses(ctx context.Context, query string, searchByPID bool, limit 
 			continue
 		}
 
-		items = append(items, &docker.ProcessInfo{
+		items = append(items, &system.ProcessInfo{
 			Pid:           pid,
 			Name:          name,
 			CpuPercent:    cpuPct,

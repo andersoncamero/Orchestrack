@@ -17,8 +17,9 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/go/orchestrack/backend/orchestrack-agent/src/metrics"
-	"github.com/go/orchestrack/backend/orchestrack-agent/src/system"
+	agentSystem "github.com/go/orchestrack/backend/orchestrack-agent/src/system"
 	"github.com/go/orchestrack/backend/proto/docker"
+	systemPb "github.com/go/orchestrack/backend/proto/system"
 )
 
 // ContainerRepository implementa repository.Repository usando el Docker SDK.
@@ -164,7 +165,7 @@ func (r *ContainerRepository) RemoveContainer(ctx context.Context, id string, fo
 	})
 }
 
-// Close cierra el cliente Docker.
+// Close cierra la conexión con el cliente de Docker.
 func (r *ContainerRepository) Close() error {
 	return r.client.Close()
 }
@@ -172,37 +173,37 @@ func (r *ContainerRepository) Close() error {
 // ---------- Operaciones del sistema ----------
 
 // ListPackages lista los paquetes instalados en el host.
-func (r *ContainerRepository) ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*docker.SystemPackage, error) {
-	return system.ListPackages(ctx, query, upgradableOnly)
+func (r *ContainerRepository) ListPackages(ctx context.Context, query string, upgradableOnly bool) ([]*systemPb.SystemPackage, error) {
+	return agentSystem.ListPackages(ctx, query, upgradableOnly)
 }
 
 // RefreshPackages actualiza la lista de paquetes disponibles.
-func (r *ContainerRepository) RefreshPackages(ctx context.Context, dryRun bool) (*docker.RefreshPackagesResponse, error) {
-	return system.RefreshPackages(ctx, dryRun)
+func (r *ContainerRepository) RefreshPackages(ctx context.Context, dryRun bool) (*systemPb.RefreshPackagesResponse, error) {
+	return agentSystem.RefreshPackages(ctx, dryRun)
 }
 
 // UpgradePackages instala las actualizaciones disponibles.
-func (r *ContainerRepository) UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []string) (*docker.UpgradePackagesResponse, error) {
-	return system.UpgradePackages(ctx, dryRun, autoConfirm, packages)
+func (r *ContainerRepository) UpgradePackages(ctx context.Context, dryRun, autoConfirm bool, packages []string) (*systemPb.UpgradePackagesResponse, error) {
+	return agentSystem.UpgradePackages(ctx, dryRun, autoConfirm, packages)
 }
 
 // RemovePackages elimina los paquetes indicados del sistema.
-func (r *ContainerRepository) RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, dryRun bool) (*docker.RemovePackagesResponse, error) {
-	return system.RemovePackages(ctx, packages, purge, autoConfirm, dryRun)
+func (r *ContainerRepository) RemovePackages(ctx context.Context, packages []string, purge, autoConfirm, dryRun bool) (*systemPb.RemovePackagesResponse, error) {
+	return agentSystem.RemovePackages(ctx, packages, purge, autoConfirm, dryRun)
 }
 
 // GetSystemInfo devuelve información básica del sistema operativo.
-func (r *ContainerRepository) GetSystemInfo() *docker.SystemInfo {
-	return system.GetSystemInfo()
+func (r *ContainerRepository) GetSystemInfo() *systemPb.SystemInfo {
+	return agentSystem.GetSystemInfo()
 }
 
 // SearchProcesses busca procesos en el host por nombre o PID.
-func (r *ContainerRepository) SearchProcesses(ctx context.Context, query string, searchByPID bool, limit int32) (*docker.SearchProcessesResponse, error) {
+func (r *ContainerRepository) SearchProcesses(ctx context.Context, query string, searchByPID bool, limit int32) (*systemPb.SearchProcessesResponse, error) {
 	processes, total, err := metrics.SearchProcesses(ctx, query, searchByPID, int(limit))
 	if err != nil {
 		return nil, err
 	}
-	return &docker.SearchProcessesResponse{
+	return &systemPb.SearchProcessesResponse{
 		Processes: processes,
 		Total:     total,
 	}, nil

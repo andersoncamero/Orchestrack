@@ -1,6 +1,7 @@
 package commander
 
 import (
+	"github.com/go/orchestrack/backend/proto/system"
 	"context"
 	"fmt"
 
@@ -174,10 +175,10 @@ func RemoveImage(ctx context.Context, identifier string, hostnameRegistry map[st
 }
 
 // ListPackages envía el comando list packages a una instancia de docker-service.
-func ListPackages(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *docker.ListPackagesRequest) (*docker.ListPackagesResponse, error) {
+func ListPackages(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *system.ListPackagesRequest) (*system.ListPackagesResponse, error) {
 	target := resolveIdentifier(hostnameRegistry, identifier)
 	subject := events.CommandSubject(events.SubjectCommandListPackages, target)
-	resp := &docker.ListPackagesResponse{}
+	resp := &system.ListPackagesResponse{}
 	if err := execute(ctx, subject, req, resp); err != nil {
 		return nil, fmt.Errorf("failed to list packages: %w", err)
 	}
@@ -185,10 +186,10 @@ func ListPackages(ctx context.Context, identifier string, hostnameRegistry map[s
 }
 
 // RefreshPackages envía el comando refresh packages a una instancia de docker-service.
-func RefreshPackages(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *docker.RefreshPackagesRequest) (*docker.RefreshPackagesResponse, error) {
+func RefreshPackages(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *system.RefreshPackagesRequest) (*system.RefreshPackagesResponse, error) {
 	target := resolveIdentifier(hostnameRegistry, identifier)
 	subject := events.CommandSubject(events.SubjectCommandRefreshPackages, target)
-	resp := &docker.RefreshPackagesResponse{}
+	resp := &system.RefreshPackagesResponse{}
 	if err := execute(ctx, subject, req, resp); err != nil {
 		return nil, fmt.Errorf("failed to refresh packages: %w", err)
 	}
@@ -196,10 +197,10 @@ func RefreshPackages(ctx context.Context, identifier string, hostnameRegistry ma
 }
 
 // UpgradePackages envía el comando upgrade packages a una instancia de docker-service.
-func UpgradePackages(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *docker.UpgradePackagesRequest) (*docker.UpgradePackagesResponse, error) {
+func UpgradePackages(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *system.UpgradePackagesRequest) (*system.UpgradePackagesResponse, error) {
 	target := resolveIdentifier(hostnameRegistry, identifier)
 	subject := events.CommandSubject(events.SubjectCommandUpgradePackages, target)
-	resp := &docker.UpgradePackagesResponse{}
+	resp := &system.UpgradePackagesResponse{}
 	if err := execute(ctx, subject, req, resp); err != nil {
 		return nil, fmt.Errorf("failed to upgrade packages: %w", err)
 	}
@@ -207,10 +208,10 @@ func UpgradePackages(ctx context.Context, identifier string, hostnameRegistry ma
 }
 
 // RemovePackages envía el comando remove packages a una instancia de docker-service.
-func RemovePackages(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *docker.RemovePackagesRequest) (*docker.RemovePackagesResponse, error) {
+func RemovePackages(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *system.RemovePackagesRequest) (*system.RemovePackagesResponse, error) {
 	target := resolveIdentifier(hostnameRegistry, identifier)
 	subject := events.CommandSubject(events.SubjectCommandRemovePackages, target)
-	resp := &docker.RemovePackagesResponse{}
+	resp := &system.RemovePackagesResponse{}
 	if err := execute(ctx, subject, req, resp); err != nil {
 		return nil, fmt.Errorf("failed to remove packages: %w", err)
 	}
@@ -218,10 +219,10 @@ func RemovePackages(ctx context.Context, identifier string, hostnameRegistry map
 }
 
 // GetSystemInfo envía el comando get system info a una instancia de docker-service.
-func GetSystemInfo(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *docker.GetSystemInfoRequest) (*docker.GetSystemInfoResponse, error) {
+func GetSystemInfo(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *system.GetSystemInfoRequest) (*system.GetSystemInfoResponse, error) {
 	target := resolveIdentifier(hostnameRegistry, identifier)
 	subject := events.CommandSubject(events.SubjectCommandGetSystemInfo, target)
-	resp := &docker.GetSystemInfoResponse{}
+	resp := &system.GetSystemInfoResponse{}
 	if err := execute(ctx, subject, req, resp); err != nil {
 		return nil, fmt.Errorf("failed to get system info: %w", err)
 	}
@@ -229,10 +230,10 @@ func GetSystemInfo(ctx context.Context, identifier string, hostnameRegistry map[
 }
 
 // SearchProcesses envía el comando search processes a una instancia de docker-service.
-func SearchProcesses(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *docker.SearchProcessesRequest) (*docker.SearchProcessesResponse, error) {
+func SearchProcesses(ctx context.Context, identifier string, hostnameRegistry map[string]string, req *system.SearchProcessesRequest) (*system.SearchProcessesResponse, error) {
 	target := resolveIdentifier(hostnameRegistry, identifier)
 	subject := events.CommandSubject(events.SubjectCommandSearchProcesses, target)
-	resp := &docker.SearchProcessesResponse{}
+	resp := &system.SearchProcessesResponse{}
 	if err := execute(ctx, subject, req, resp); err != nil {
 		return nil, fmt.Errorf("failed to search processes: %w", err)
 	}
