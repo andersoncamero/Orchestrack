@@ -10,6 +10,8 @@ import { useWebSocket } from '../../hooks/useWebSocket'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { api } from '../../services/api'
 import { formatBytes, timeAgo } from '../../utils/time'
+import { UserNavActions } from '../molecules/UserNavActions'
+
 export default function InstancesPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
@@ -102,13 +104,16 @@ export default function InstancesPage() {
           <h2 className="text-2xl font-bold text-(--color-text-main)">{t('instances')}</h2>
           <p className="text-(--color-text-muted) text-sm">{t('registeredHosts')}</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-(--color-primary) hover:bg-(--color-primary-hover) text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer"
-        >
-          <Server className="w-5 h-5" />
-          {t('addDevice')}
-        </button>
+        <div className="flex items-center gap-6">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-(--color-primary) hover:bg-(--color-primary-hover) text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer"
+          >
+            <Server className="w-5 h-5" />
+            {t('addDevice')}
+          </button>
+          <UserNavActions />
+        </div>
       </header>
 
       <main className="flex-1 p-8 bg-(--color-bg-base)">

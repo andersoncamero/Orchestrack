@@ -8,6 +8,7 @@ import type { TimeRange } from '../organisms/DeviceConnectionHistoryChart'
 import { ResourceBarChart } from '../organisms/ResourceBarChart'
 import { InstanceAlertsTable } from '../organisms/InstanceAlertsTable'
 import { NetworkMetricsChart } from '../organisms/NetworkMetricsChart'
+import { UserNavActions } from '../molecules/UserNavActions'
 import { useInstances } from '../../hooks/useInstances'
 import { useState, useMemo, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -186,7 +187,7 @@ export default function InstanceDetailPage() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <div className="text-right hidden sm:block">
             <p className="text-(--color-text-muted) text-xs">{t('uptime')}</p>
             <p className="text-(--color-text-main) font-semibold">{metrics ? formatDuration(metrics.uptime_seconds) : '-'}</p>
@@ -195,6 +196,7 @@ export default function InstanceDetailPage() {
             <Badge state={instance.status} />
             <span className="text-(--color-text-muted) text-sm">{timeAgo(instance.last_seen)}</span>
           </div>
+          <UserNavActions />
         </div>
       </header>
 

@@ -15,6 +15,8 @@ interface RuntimeCard {
   routes: { labelKey: string; path: string; icon: React.ElementType }[]
 }
 
+import { UserNavActions } from '../molecules/UserNavActions'
+
 export default function ContainersOverviewPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
@@ -54,6 +56,7 @@ export default function ContainersOverviewPage() {
           <h2 className="text-2xl font-bold text-(--color-text-main)">{t('containers')}</h2>
           <p className="text-(--color-text-muted) text-sm">{t('selectContainerTechnology')}</p>
         </div>
+        <UserNavActions />
       </header>
 
       <main className="flex-1 p-8 bg-(--color-bg-base)">

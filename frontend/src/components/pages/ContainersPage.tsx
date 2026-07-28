@@ -18,6 +18,8 @@ interface ContainerWithHost extends ContainerSummary {
   hostname: string;
 }
 
+import { UserNavActions } from '../molecules/UserNavActions'
+
 export default function ContainersPage() {
   const { t } = useLanguage()
   const { instances, loading: loadingInstances } = useInstances()
@@ -189,7 +191,7 @@ export default function ContainersPage() {
 
   return (
     <MainLayout>
-      <header className="h-20 bg-(--color-bg-surface)/80 backdrop-blur-sm border-b border-(--color-border) flex items-center px-8 sticky top-0 z-10">
+      <header className="h-20 bg-(--color-bg-surface)/80 backdrop-blur-sm border-b border-(--color-border) flex items-center justify-between px-8 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Boxes className="w-6 h-6 text-(--color-primary)" />
           <div>
@@ -197,6 +199,7 @@ export default function ContainersPage() {
             <p className="text-(--color-text-muted) text-sm">{t('allDockerContainers')}</p>
           </div>
         </div>
+        <UserNavActions />
       </header>
 
       <main className="flex-1 p-8 bg-(--color-bg-base) space-y-6">

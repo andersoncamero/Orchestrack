@@ -3,6 +3,7 @@ import { Package, Server, Eye, ArrowLeft, RefreshCw, Download, Search, AlertCirc
 import { MainLayout } from '../templates/MainLayout'
 import { Spinner } from '../atoms/Spinner'
 import { Badge } from '../atoms/Badge'
+import { UserNavActions } from '../molecules/UserNavActions'
 import { Button } from '../atoms/Button'
 import { PackagesTable } from '../organisms/PackagesTable'
 import { ConfirmModal } from '../molecules/ConfirmModal'
@@ -308,7 +309,7 @@ export default function PackagesPage() {
 
   return (
     <MainLayout>
-      <header className="h-20 bg-(--color-bg-surface)/80 backdrop-blur-sm border-b border-(--color-border) flex items-center px-8 sticky top-0 z-10">
+      <header className="h-20 bg-(--color-bg-surface)/80 backdrop-blur-sm border-b border-(--color-border) flex items-center justify-between px-8 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Package className="w-6 h-6 text-(--color-primary)" />
           <div>
@@ -316,6 +317,7 @@ export default function PackagesPage() {
             <p className="text-(--color-text-muted) text-sm">{t('packagesDescription')}</p>
           </div>
         </div>
+        <UserNavActions />
       </header>
 
       <main className="flex-1 p-8 bg-(--color-bg-base) space-y-8">

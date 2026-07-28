@@ -12,6 +12,8 @@ import { api } from '../../services/api'
 import { timeAgo } from '../../utils/time'
 import type { ImageSearchResult, ImageSummary } from '../../types'
 
+import { UserNavActions } from '../molecules/UserNavActions'
+
 interface ImageWithHost extends ImageSummary {
   hostname: string
   service_id: string
@@ -199,7 +201,7 @@ export default function ImagesPage() {
 
   return (
     <MainLayout>
-      <header className="h-20 bg-(--color-bg-surface)/80 backdrop-blur-sm border-b border-(--color-border) flex items-center px-8 sticky top-0 z-10">
+      <header className="h-20 bg-(--color-bg-surface)/80 backdrop-blur-sm border-b border-(--color-border) flex items-center justify-between px-8 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Layers className="w-6 h-6 text-(--color-primary)" />
           <div>
@@ -207,6 +209,7 @@ export default function ImagesPage() {
             <p className="text-(--color-text-muted) text-sm">{t('dockerImagesAvailable')}</p>
           </div>
         </div>
+        <UserNavActions />
       </header>
 
       <main className="flex-1 p-8 bg-(--color-bg-base) space-y-6">

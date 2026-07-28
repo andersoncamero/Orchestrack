@@ -64,15 +64,20 @@ export function useNetworkMetrics(serviceId?: string) {
         return
       }
 
-      const hostMetrics = payload.host_metrics
-      const netMetrics = payload.network_metrics || hostMetrics
+      const hostMetrics = payload.host_metrics || payload.hostMetrics || {}
+      const netMetrics = payload.network_metrics || payload.networkMetrics || hostMetrics
 
-      if (netMetrics && (typeof netMetrics.rx_bytes_per_sec === 'number' || typeof netMetrics.rtt_ms === 'number')) {
-        const rx = netMetrics.rx_bytes_per_sec || 0
-        const tx = netMetrics.tx_bytes_per_sec || 0
-        const pktRecv = netMetrics.packets_recv_per_sec || 0
-        const pktSent = netMetrics.packets_sent_per_sec || 0
-        const rtt = netMetrics.rtt_ms || 0
+      if (netMetrics && (
+        typeof netMetrics.rx_bytes_per_sec === 'number' || 
+        typeof netMetrics.RxBytesPerSec === 'number' ||
+        typeof netMetrics.rtt_ms === 'number' ||
+        typeof netMetrics.RttMs === 'number'
+      )) {
+        const rx = netMetrics.rx_bytes_per_sec ?? netMetrics.RxBytesPerSec ?? 0
+        const tx = netMetrics.tx_bytes_per_sec ?? netMetrics.TxBytesPerSec ?? 0
+        const pktRecv = netMetrics.packets_recv_per_sec ?? netMetrics.PacketsRecvPerSec ?? 0
+        const pktSent = netMetrics.packets_sent_per_sec ?? netMetrics.PacketsSentPerSec ?? 0
+        const rtt = netMetrics.rtt_ms ?? netMetrics.RttMs ?? 0
         const ts = payload.timestamp || Math.floor(Date.now() / 1000)
         const recordedAt = new Date(ts * 1000).toISOString()
 

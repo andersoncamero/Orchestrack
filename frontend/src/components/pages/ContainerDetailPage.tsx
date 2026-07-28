@@ -4,6 +4,7 @@ import { ArrowLeft, Play, RotateCcw, Square, Save, Trash2 } from 'lucide-react'
 import { MainLayout } from '../templates/MainLayout'
 import { Spinner } from '../atoms/Spinner'
 import { Badge } from '../atoms/Badge'
+import { UserNavActions } from '../molecules/UserNavActions'
 import { ConfirmModal } from '../molecules/ConfirmModal'
 import { useInstances } from '../../hooks/useInstances'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -132,15 +133,16 @@ export default function ContainerDetailPage() {
             <p className="text-(--color-text-muted) text-sm">{instance.hostname} · ID: {container.id.slice(0, 12)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-5">
           <Badge state={container.state} />
           <button
             onClick={() => setShowRemoveModal(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-(--color-status-exited-subtle) hover:bg-(--color-status-exited)/20 text-(--color-status-exited) text-sm rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 bg-(--color-status-exited-subtle) hover:bg-(--color-status-exited)/20 text-(--color-status-exited) text-sm rounded-lg transition-colors cursor-pointer"
           >
             <Trash2 className="w-4 h-4" />
             {t('remove')}
           </button>
+          <UserNavActions />
         </div>
       </header>
 

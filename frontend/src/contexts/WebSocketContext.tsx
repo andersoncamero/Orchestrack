@@ -66,10 +66,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       try {
         const parsed = JSON.parse(event.data)
         const eventType = parsed.type
+        const serviceId = parsed.payload?.service_id || parsed.payload?.device_id
 
-        // Mapeamos el tipo de evento a la sala lógica:
-        // - Eventos de tipo "heartbeat" pertenecen a la sala "dashboard"
-        // - Eventos de tipo "container.*" pertenecen a la sala "containers"
+        // 1. Mapeamos el tipo de evento a la sala lógica global (dashboard, containers)
         let targetRoom = ''
         if (eventType === 'heartbeat' || (eventType && (eventType.startsWith('instance.') || eventType.startsWith('device.') || eventType.startsWith('image.')))) {
           targetRoom = 'dashboard'
@@ -80,14 +79,30 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         if (targetRoom) {
           const roomCallbacks = listenersRef.current.get(targetRoom)
           if (roomCallbacks) {
-            // Pasamos el mensaje completo { type, payload } para mantener compatibilidad
             roomCallbacks.forEach((cb) => cb(parsed))
           }
         }
 
-        // Además, si es un evento de contenedor y tiene service_id, despachar a la sala segmentada
-        if (eventType && eventType.startsWith('container.') && parsed.payload?.service_id) {
-          const specificRoom = `containers:${parsed.payload.service_id}`
+        // 2. Despachar a la sala específica del dispositivo (device:<service_id>)
+        if (serviceId) {
+          const deviceRoom = `device:${serviceId}`
+          const deviceCallbacks = listenersRef.current.get(deviceRoom)
+          if (deviceCallbacks) {
+            deviceCallbacks.forEach((cb) => cb(parsed))
+          }
+        }
+
+        // 3. Despachar a la sala por tipo de evento si existe suscriptor
+        if (eventType) {
+          const typeCallbacks = listenersRef.current.get(eventType)
+          if (typeCallbacks) {
+            typeCallbacks.forEach((cb) => cb(parsed))
+          }
+        }
+
+        // 4. Despachar a la sala específica de contenedores (containers:<service_id>)
+        if (eventType && eventType.startsWith('container.') && serviceId) {
+          const specificRoom = `containers:${serviceId}`
           const specificCallbacks = listenersRef.current.get(specificRoom)
           if (specificCallbacks) {
             specificCallbacks.forEach((cb) => cb(parsed))

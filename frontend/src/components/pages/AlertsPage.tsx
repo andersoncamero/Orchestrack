@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Bell, Server, AlertTriangle, CheckCircle2, Eye, ArrowLeft } from 'lucide-react'
 import { MainLayout } from '../templates/MainLayout'
 import { Spinner } from '../atoms/Spinner'
+import { UserNavActions } from '../molecules/UserNavActions'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { SystemAlerts } from '../organisms/SystemAlerts'
@@ -101,6 +102,7 @@ export default function AlertsPage() {
             <p className="text-(--color-text-muted) text-sm">{t('systemAlertsDescription')}</p>
           </div>
         </div>
+        <UserNavActions />
       </header>
 
       <main className="flex-1 p-8 bg-(--color-bg-base) space-y-8">
