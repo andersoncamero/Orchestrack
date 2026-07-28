@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v3.21.12
-// source: docker_events.proto
+// source: proto/docker/docker_events.proto
 
 package docker
 
@@ -34,7 +34,7 @@ type ContainerCreatedEvent struct {
 
 func (x *ContainerCreatedEvent) Reset() {
 	*x = ContainerCreatedEvent{}
-	mi := &file_docker_events_proto_msgTypes[0]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +46,7 @@ func (x *ContainerCreatedEvent) String() string {
 func (*ContainerCreatedEvent) ProtoMessage() {}
 
 func (x *ContainerCreatedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_docker_events_proto_msgTypes[0]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,7 +59,7 @@ func (x *ContainerCreatedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerCreatedEvent.ProtoReflect.Descriptor instead.
 func (*ContainerCreatedEvent) Descriptor() ([]byte, []int) {
-	return file_docker_events_proto_rawDescGZIP(), []int{0}
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ContainerCreatedEvent) GetServiceId() string {
@@ -108,7 +108,7 @@ type ContainerStartedEvent struct {
 
 func (x *ContainerStartedEvent) Reset() {
 	*x = ContainerStartedEvent{}
-	mi := &file_docker_events_proto_msgTypes[1]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -120,7 +120,7 @@ func (x *ContainerStartedEvent) String() string {
 func (*ContainerStartedEvent) ProtoMessage() {}
 
 func (x *ContainerStartedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_docker_events_proto_msgTypes[1]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -133,7 +133,7 @@ func (x *ContainerStartedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerStartedEvent.ProtoReflect.Descriptor instead.
 func (*ContainerStartedEvent) Descriptor() ([]byte, []int) {
-	return file_docker_events_proto_rawDescGZIP(), []int{1}
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ContainerStartedEvent) GetServiceId() string {
@@ -168,7 +168,7 @@ type ContainerStoppedEvent struct {
 
 func (x *ContainerStoppedEvent) Reset() {
 	*x = ContainerStoppedEvent{}
-	mi := &file_docker_events_proto_msgTypes[2]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -180,7 +180,7 @@ func (x *ContainerStoppedEvent) String() string {
 func (*ContainerStoppedEvent) ProtoMessage() {}
 
 func (x *ContainerStoppedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_docker_events_proto_msgTypes[2]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -193,7 +193,7 @@ func (x *ContainerStoppedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerStoppedEvent.ProtoReflect.Descriptor instead.
 func (*ContainerStoppedEvent) Descriptor() ([]byte, []int) {
-	return file_docker_events_proto_rawDescGZIP(), []int{2}
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ContainerStoppedEvent) GetServiceId() string {
@@ -228,7 +228,7 @@ type ContainerRestartedEvent struct {
 
 func (x *ContainerRestartedEvent) Reset() {
 	*x = ContainerRestartedEvent{}
-	mi := &file_docker_events_proto_msgTypes[3]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -240,7 +240,7 @@ func (x *ContainerRestartedEvent) String() string {
 func (*ContainerRestartedEvent) ProtoMessage() {}
 
 func (x *ContainerRestartedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_docker_events_proto_msgTypes[3]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -253,7 +253,7 @@ func (x *ContainerRestartedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerRestartedEvent.ProtoReflect.Descriptor instead.
 func (*ContainerRestartedEvent) Descriptor() ([]byte, []int) {
-	return file_docker_events_proto_rawDescGZIP(), []int{3}
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ContainerRestartedEvent) GetServiceId() string {
@@ -290,7 +290,7 @@ type ContainerRenamedEvent struct {
 
 func (x *ContainerRenamedEvent) Reset() {
 	*x = ContainerRenamedEvent{}
-	mi := &file_docker_events_proto_msgTypes[4]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -302,7 +302,7 @@ func (x *ContainerRenamedEvent) String() string {
 func (*ContainerRenamedEvent) ProtoMessage() {}
 
 func (x *ContainerRenamedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_docker_events_proto_msgTypes[4]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -315,7 +315,7 @@ func (x *ContainerRenamedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerRenamedEvent.ProtoReflect.Descriptor instead.
 func (*ContainerRenamedEvent) Descriptor() ([]byte, []int) {
-	return file_docker_events_proto_rawDescGZIP(), []int{4}
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ContainerRenamedEvent) GetServiceId() string {
@@ -365,7 +365,7 @@ type ContainerRemovedEvent struct {
 
 func (x *ContainerRemovedEvent) Reset() {
 	*x = ContainerRemovedEvent{}
-	mi := &file_docker_events_proto_msgTypes[5]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -377,7 +377,7 @@ func (x *ContainerRemovedEvent) String() string {
 func (*ContainerRemovedEvent) ProtoMessage() {}
 
 func (x *ContainerRemovedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_docker_events_proto_msgTypes[5]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -390,7 +390,7 @@ func (x *ContainerRemovedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerRemovedEvent.ProtoReflect.Descriptor instead.
 func (*ContainerRemovedEvent) Descriptor() ([]byte, []int) {
-	return file_docker_events_proto_rawDescGZIP(), []int{5}
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ContainerRemovedEvent) GetServiceId() string {
@@ -439,7 +439,7 @@ type ContainerEvent struct {
 
 func (x *ContainerEvent) Reset() {
 	*x = ContainerEvent{}
-	mi := &file_docker_events_proto_msgTypes[6]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -451,7 +451,7 @@ func (x *ContainerEvent) String() string {
 func (*ContainerEvent) ProtoMessage() {}
 
 func (x *ContainerEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_docker_events_proto_msgTypes[6]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -464,7 +464,7 @@ func (x *ContainerEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContainerEvent.ProtoReflect.Descriptor instead.
 func (*ContainerEvent) Descriptor() ([]byte, []int) {
-	return file_docker_events_proto_rawDescGZIP(), []int{6}
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ContainerEvent) GetServiceId() string {
@@ -536,7 +536,7 @@ type AgentStatusEvent struct {
 
 func (x *AgentStatusEvent) Reset() {
 	*x = AgentStatusEvent{}
-	mi := &file_docker_events_proto_msgTypes[7]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -548,7 +548,7 @@ func (x *AgentStatusEvent) String() string {
 func (*AgentStatusEvent) ProtoMessage() {}
 
 func (x *AgentStatusEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_docker_events_proto_msgTypes[7]
+	mi := &file_proto_docker_docker_events_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -561,7 +561,7 @@ func (x *AgentStatusEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentStatusEvent.ProtoReflect.Descriptor instead.
 func (*AgentStatusEvent) Descriptor() ([]byte, []int) {
-	return file_docker_events_proto_rawDescGZIP(), []int{7}
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *AgentStatusEvent) GetServiceId() string {
@@ -599,11 +599,11 @@ func (x *AgentStatusEvent) GetReason() string {
 	return ""
 }
 
-var File_docker_events_proto protoreflect.FileDescriptor
+var File_proto_docker_docker_events_proto protoreflect.FileDescriptor
 
-const file_docker_events_proto_rawDesc = "" +
+const file_proto_docker_docker_events_proto_rawDesc = "" +
 	"\n" +
-	"\x13docker_events.proto\x12\x12orchestrack.docker\"\x8f\x01\n" +
+	" proto/docker/docker_events.proto\x12\x12orchestrack.docker\"\x8f\x01\n" +
 	"\x15ContainerCreatedEvent\x12\x1d\n" +
 	"\n" +
 	"service_id\x18\x01 \x01(\tR\tserviceId\x12\x0e\n" +
@@ -660,19 +660,19 @@ const file_docker_events_proto_rawDesc = "" +
 	"\x06reason\x18\x05 \x01(\tR\x06reasonB7Z5github.com/go/orchestrack/backend/proto/docker;dockerb\x06proto3"
 
 var (
-	file_docker_events_proto_rawDescOnce sync.Once
-	file_docker_events_proto_rawDescData []byte
+	file_proto_docker_docker_events_proto_rawDescOnce sync.Once
+	file_proto_docker_docker_events_proto_rawDescData []byte
 )
 
-func file_docker_events_proto_rawDescGZIP() []byte {
-	file_docker_events_proto_rawDescOnce.Do(func() {
-		file_docker_events_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_docker_events_proto_rawDesc), len(file_docker_events_proto_rawDesc)))
+func file_proto_docker_docker_events_proto_rawDescGZIP() []byte {
+	file_proto_docker_docker_events_proto_rawDescOnce.Do(func() {
+		file_proto_docker_docker_events_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_docker_docker_events_proto_rawDesc), len(file_proto_docker_docker_events_proto_rawDesc)))
 	})
-	return file_docker_events_proto_rawDescData
+	return file_proto_docker_docker_events_proto_rawDescData
 }
 
-var file_docker_events_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_docker_events_proto_goTypes = []any{
+var file_proto_docker_docker_events_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_docker_docker_events_proto_goTypes = []any{
 	(*ContainerCreatedEvent)(nil),   // 0: orchestrack.docker.ContainerCreatedEvent
 	(*ContainerStartedEvent)(nil),   // 1: orchestrack.docker.ContainerStartedEvent
 	(*ContainerStoppedEvent)(nil),   // 2: orchestrack.docker.ContainerStoppedEvent
@@ -682,7 +682,7 @@ var file_docker_events_proto_goTypes = []any{
 	(*ContainerEvent)(nil),          // 6: orchestrack.docker.ContainerEvent
 	(*AgentStatusEvent)(nil),        // 7: orchestrack.docker.AgentStatusEvent
 }
-var file_docker_events_proto_depIdxs = []int32{
+var file_proto_docker_docker_events_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -690,26 +690,26 @@ var file_docker_events_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_docker_events_proto_init() }
-func file_docker_events_proto_init() {
-	if File_docker_events_proto != nil {
+func init() { file_proto_docker_docker_events_proto_init() }
+func file_proto_docker_docker_events_proto_init() {
+	if File_proto_docker_docker_events_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_docker_events_proto_rawDesc), len(file_docker_events_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_docker_docker_events_proto_rawDesc), len(file_proto_docker_docker_events_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_docker_events_proto_goTypes,
-		DependencyIndexes: file_docker_events_proto_depIdxs,
-		MessageInfos:      file_docker_events_proto_msgTypes,
+		GoTypes:           file_proto_docker_docker_events_proto_goTypes,
+		DependencyIndexes: file_proto_docker_docker_events_proto_depIdxs,
+		MessageInfos:      file_proto_docker_docker_events_proto_msgTypes,
 	}.Build()
-	File_docker_events_proto = out.File
-	file_docker_events_proto_goTypes = nil
-	file_docker_events_proto_depIdxs = nil
+	File_proto_docker_docker_events_proto = out.File
+	file_proto_docker_docker_events_proto_goTypes = nil
+	file_proto_docker_docker_events_proto_depIdxs = nil
 }

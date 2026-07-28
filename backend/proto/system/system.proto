@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package orchestrack.docker;
+package orchestrack.system;
 
-option go_package = "github.com/go/orchestrack/backend/proto/docker;docker";
+option go_package = "github.com/go/orchestrack/backend/proto/system;system";
 
 // Gestor de paquetes detectado en el host.
 enum PackageManager {
@@ -40,9 +40,7 @@ message SystemPackage {
 // ---------- ListPackages ----------
 
 message ListPackagesRequest {
-  // Filtro de búsqueda opcional por nombre.
   string query = 1;
-  // Si es true, incluye paquetes que tienen actualización disponible.
   bool upgradable_only = 2;
 }
 
@@ -54,14 +52,12 @@ message ListPackagesResponse {
 // ---------- RefreshPackages ----------
 
 message RefreshPackagesRequest {
-  // Si es true, no ejecuta cambios, solo simula.
   bool dry_run = 1;
 }
 
 message RefreshPackagesResponse {
   bool success = 1;
   string output = 2;
-  // Paquetes con actualización disponible detectada tras refrescar.
   repeated SystemPackage upgradable_packages = 3;
   int32 upgradable_count = 4;
 }
@@ -69,11 +65,8 @@ message RefreshPackagesResponse {
 // ---------- UpgradePackages ----------
 
 message UpgradePackagesRequest {
-  // Si es true, no ejecuta cambios, solo simula.
   bool dry_run = 1;
-  // Si es true, responde afirmativamente a las preguntas del gestor.
   bool auto_confirm = 2;
-  // Lista de paquetes específicos; vacía = todos los disponibles.
   repeated string packages = 3;
 }
 
@@ -88,13 +81,9 @@ message UpgradePackagesResponse {
 // ---------- RemovePackages ----------
 
 message RemovePackagesRequest {
-  // Lista de paquetes a eliminar.
   repeated string packages = 1;
-  // Si es true, elimina también los archivos de configuración (APT purge, etc.).
   bool purge = 2;
-  // Si es true, responde afirmativamente a las preguntas del gestor.
   bool auto_confirm = 3;
-  // Si es true, no ejecuta cambios, solo simula.
   bool dry_run = 4;
 }
 
@@ -110,4 +99,44 @@ message GetSystemInfoRequest {}
 
 message GetSystemInfoResponse {
   SystemInfo info = 1;
+}
+
+// ---------- Métricas del Host ----------
+
+message HostMetrics {
+  double cpu_percent = 1;
+  int64 memory_total = 2;
+  int64 memory_used = 3;
+  double memory_percent = 4;
+  int64 disk_total = 5;
+  int64 disk_used = 6;
+  double disk_percent = 7;
+  double load_average = 8;
+  int64 uptime_seconds = 9;
+  int32 cpu_cores = 10;
+  string platform = 11;
+  repeated ProcessInfo processes = 12;
+  int32 process_count = 13;
+}
+
+// Información de un proceso del sistema operativo.
+message ProcessInfo {
+  int32 pid = 1;
+  string name = 2;
+  double cpu_percent = 3;
+  double memory_percent = 4;
+  int64 memory_bytes = 5;
+}
+
+// ---------- SearchProcesses ----------
+
+message SearchProcessesRequest {
+  string query = 1;
+  bool search_by_pid = 2;
+  int32 limit = 3;
+}
+
+message SearchProcessesResponse {
+  repeated ProcessInfo processes = 1;
+  int32 total = 2;
 }

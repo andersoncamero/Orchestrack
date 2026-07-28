@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v3.21.12
-// source: proto/docker/docker_system.proto
+// source: proto/system/system.proto
 
-package docker
+package system
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -73,11 +73,11 @@ func (x PackageManager) String() string {
 }
 
 func (PackageManager) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_docker_docker_system_proto_enumTypes[0].Descriptor()
+	return file_proto_system_system_proto_enumTypes[0].Descriptor()
 }
 
 func (PackageManager) Type() protoreflect.EnumType {
-	return &file_proto_docker_docker_system_proto_enumTypes[0]
+	return &file_proto_system_system_proto_enumTypes[0]
 }
 
 func (x PackageManager) Number() protoreflect.EnumNumber {
@@ -86,7 +86,7 @@ func (x PackageManager) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PackageManager.Descriptor instead.
 func (PackageManager) EnumDescriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{0}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{0}
 }
 
 // Información básica del sistema operativo.
@@ -95,7 +95,7 @@ type SystemInfo struct {
 	Os                    string                 `protobuf:"bytes,1,opt,name=os,proto3" json:"os,omitempty"`                                // linux, darwin, windows
 	OsVersion             string                 `protobuf:"bytes,2,opt,name=os_version,json=osVersion,proto3" json:"os_version,omitempty"` // Versión del SO (ej. 22.04, 13.5)
 	Architecture          string                 `protobuf:"bytes,3,opt,name=architecture,proto3" json:"architecture,omitempty"`            // amd64, arm64, etc.
-	PackageManager        PackageManager         `protobuf:"varint,4,opt,name=package_manager,json=packageManager,proto3,enum=orchestrack.docker.PackageManager" json:"package_manager,omitempty"`
+	PackageManager        PackageManager         `protobuf:"varint,4,opt,name=package_manager,json=packageManager,proto3,enum=orchestrack.system.PackageManager" json:"package_manager,omitempty"`
 	PackageManagerVersion string                 `protobuf:"bytes,5,opt,name=package_manager_version,json=packageManagerVersion,proto3" json:"package_manager_version,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
@@ -103,7 +103,7 @@ type SystemInfo struct {
 
 func (x *SystemInfo) Reset() {
 	*x = SystemInfo{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[0]
+	mi := &file_proto_system_system_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -115,7 +115,7 @@ func (x *SystemInfo) String() string {
 func (*SystemInfo) ProtoMessage() {}
 
 func (x *SystemInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[0]
+	mi := &file_proto_system_system_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -128,7 +128,7 @@ func (x *SystemInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemInfo.ProtoReflect.Descriptor instead.
 func (*SystemInfo) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{0}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SystemInfo) GetOs() string {
@@ -182,7 +182,7 @@ type SystemPackage struct {
 
 func (x *SystemPackage) Reset() {
 	*x = SystemPackage{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[1]
+	mi := &file_proto_system_system_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -194,7 +194,7 @@ func (x *SystemPackage) String() string {
 func (*SystemPackage) ProtoMessage() {}
 
 func (x *SystemPackage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[1]
+	mi := &file_proto_system_system_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -207,7 +207,7 @@ func (x *SystemPackage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemPackage.ProtoReflect.Descriptor instead.
 func (*SystemPackage) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{1}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SystemPackage) GetName() string {
@@ -260,18 +260,16 @@ func (x *SystemPackage) GetSummary() string {
 }
 
 type ListPackagesRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Filtro de búsqueda opcional por nombre.
-	Query string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
-	// Si es true, incluye paquetes que tienen actualización disponible.
-	UpgradableOnly bool `protobuf:"varint,2,opt,name=upgradable_only,json=upgradableOnly,proto3" json:"upgradable_only,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Query          string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	UpgradableOnly bool                   `protobuf:"varint,2,opt,name=upgradable_only,json=upgradableOnly,proto3" json:"upgradable_only,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ListPackagesRequest) Reset() {
 	*x = ListPackagesRequest{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[2]
+	mi := &file_proto_system_system_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -283,7 +281,7 @@ func (x *ListPackagesRequest) String() string {
 func (*ListPackagesRequest) ProtoMessage() {}
 
 func (x *ListPackagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[2]
+	mi := &file_proto_system_system_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -296,7 +294,7 @@ func (x *ListPackagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPackagesRequest.ProtoReflect.Descriptor instead.
 func (*ListPackagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{2}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ListPackagesRequest) GetQuery() string {
@@ -323,7 +321,7 @@ type ListPackagesResponse struct {
 
 func (x *ListPackagesResponse) Reset() {
 	*x = ListPackagesResponse{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[3]
+	mi := &file_proto_system_system_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -335,7 +333,7 @@ func (x *ListPackagesResponse) String() string {
 func (*ListPackagesResponse) ProtoMessage() {}
 
 func (x *ListPackagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[3]
+	mi := &file_proto_system_system_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -348,7 +346,7 @@ func (x *ListPackagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPackagesResponse.ProtoReflect.Descriptor instead.
 func (*ListPackagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{3}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ListPackagesResponse) GetPackages() []*SystemPackage {
@@ -366,16 +364,15 @@ func (x *ListPackagesResponse) GetTotal() int32 {
 }
 
 type RefreshPackagesRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Si es true, no ejecuta cambios, solo simula.
-	DryRun        bool `protobuf:"varint,1,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DryRun        bool                   `protobuf:"varint,1,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RefreshPackagesRequest) Reset() {
 	*x = RefreshPackagesRequest{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[4]
+	mi := &file_proto_system_system_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -387,7 +384,7 @@ func (x *RefreshPackagesRequest) String() string {
 func (*RefreshPackagesRequest) ProtoMessage() {}
 
 func (x *RefreshPackagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[4]
+	mi := &file_proto_system_system_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -400,7 +397,7 @@ func (x *RefreshPackagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshPackagesRequest.ProtoReflect.Descriptor instead.
 func (*RefreshPackagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{4}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RefreshPackagesRequest) GetDryRun() bool {
@@ -411,19 +408,18 @@ func (x *RefreshPackagesRequest) GetDryRun() bool {
 }
 
 type RefreshPackagesResponse struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Success bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Output  string                 `protobuf:"bytes,2,opt,name=output,proto3" json:"output,omitempty"`
-	// Paquetes con actualización disponible detectada tras refrescar.
-	UpgradablePackages []*SystemPackage `protobuf:"bytes,3,rep,name=upgradable_packages,json=upgradablePackages,proto3" json:"upgradable_packages,omitempty"`
-	UpgradableCount    int32            `protobuf:"varint,4,opt,name=upgradable_count,json=upgradableCount,proto3" json:"upgradable_count,omitempty"`
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Success            bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Output             string                 `protobuf:"bytes,2,opt,name=output,proto3" json:"output,omitempty"`
+	UpgradablePackages []*SystemPackage       `protobuf:"bytes,3,rep,name=upgradable_packages,json=upgradablePackages,proto3" json:"upgradable_packages,omitempty"`
+	UpgradableCount    int32                  `protobuf:"varint,4,opt,name=upgradable_count,json=upgradableCount,proto3" json:"upgradable_count,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
 func (x *RefreshPackagesResponse) Reset() {
 	*x = RefreshPackagesResponse{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[5]
+	mi := &file_proto_system_system_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -435,7 +431,7 @@ func (x *RefreshPackagesResponse) String() string {
 func (*RefreshPackagesResponse) ProtoMessage() {}
 
 func (x *RefreshPackagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[5]
+	mi := &file_proto_system_system_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -448,7 +444,7 @@ func (x *RefreshPackagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshPackagesResponse.ProtoReflect.Descriptor instead.
 func (*RefreshPackagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{5}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RefreshPackagesResponse) GetSuccess() bool {
@@ -480,20 +476,17 @@ func (x *RefreshPackagesResponse) GetUpgradableCount() int32 {
 }
 
 type UpgradePackagesRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Si es true, no ejecuta cambios, solo simula.
-	DryRun bool `protobuf:"varint,1,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
-	// Si es true, responde afirmativamente a las preguntas del gestor.
-	AutoConfirm bool `protobuf:"varint,2,opt,name=auto_confirm,json=autoConfirm,proto3" json:"auto_confirm,omitempty"`
-	// Lista de paquetes específicos; vacía = todos los disponibles.
-	Packages      []string `protobuf:"bytes,3,rep,name=packages,proto3" json:"packages,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DryRun        bool                   `protobuf:"varint,1,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	AutoConfirm   bool                   `protobuf:"varint,2,opt,name=auto_confirm,json=autoConfirm,proto3" json:"auto_confirm,omitempty"`
+	Packages      []string               `protobuf:"bytes,3,rep,name=packages,proto3" json:"packages,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpgradePackagesRequest) Reset() {
 	*x = UpgradePackagesRequest{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[6]
+	mi := &file_proto_system_system_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -505,7 +498,7 @@ func (x *UpgradePackagesRequest) String() string {
 func (*UpgradePackagesRequest) ProtoMessage() {}
 
 func (x *UpgradePackagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[6]
+	mi := &file_proto_system_system_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -518,7 +511,7 @@ func (x *UpgradePackagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpgradePackagesRequest.ProtoReflect.Descriptor instead.
 func (*UpgradePackagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{6}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpgradePackagesRequest) GetDryRun() bool {
@@ -555,7 +548,7 @@ type UpgradePackagesResponse struct {
 
 func (x *UpgradePackagesResponse) Reset() {
 	*x = UpgradePackagesResponse{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[7]
+	mi := &file_proto_system_system_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -567,7 +560,7 @@ func (x *UpgradePackagesResponse) String() string {
 func (*UpgradePackagesResponse) ProtoMessage() {}
 
 func (x *UpgradePackagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[7]
+	mi := &file_proto_system_system_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -580,7 +573,7 @@ func (x *UpgradePackagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpgradePackagesResponse.ProtoReflect.Descriptor instead.
 func (*UpgradePackagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{7}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpgradePackagesResponse) GetSuccess() bool {
@@ -619,22 +612,18 @@ func (x *UpgradePackagesResponse) GetRemovedCount() int32 {
 }
 
 type RemovePackagesRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Lista de paquetes a eliminar.
-	Packages []string `protobuf:"bytes,1,rep,name=packages,proto3" json:"packages,omitempty"`
-	// Si es true, elimina también los archivos de configuración (APT purge, etc.).
-	Purge bool `protobuf:"varint,2,opt,name=purge,proto3" json:"purge,omitempty"`
-	// Si es true, responde afirmativamente a las preguntas del gestor.
-	AutoConfirm bool `protobuf:"varint,3,opt,name=auto_confirm,json=autoConfirm,proto3" json:"auto_confirm,omitempty"`
-	// Si es true, no ejecuta cambios, solo simula.
-	DryRun        bool `protobuf:"varint,4,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Packages      []string               `protobuf:"bytes,1,rep,name=packages,proto3" json:"packages,omitempty"`
+	Purge         bool                   `protobuf:"varint,2,opt,name=purge,proto3" json:"purge,omitempty"`
+	AutoConfirm   bool                   `protobuf:"varint,3,opt,name=auto_confirm,json=autoConfirm,proto3" json:"auto_confirm,omitempty"`
+	DryRun        bool                   `protobuf:"varint,4,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RemovePackagesRequest) Reset() {
 	*x = RemovePackagesRequest{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[8]
+	mi := &file_proto_system_system_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -646,7 +635,7 @@ func (x *RemovePackagesRequest) String() string {
 func (*RemovePackagesRequest) ProtoMessage() {}
 
 func (x *RemovePackagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[8]
+	mi := &file_proto_system_system_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -659,7 +648,7 @@ func (x *RemovePackagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemovePackagesRequest.ProtoReflect.Descriptor instead.
 func (*RemovePackagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{8}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RemovePackagesRequest) GetPackages() []string {
@@ -701,7 +690,7 @@ type RemovePackagesResponse struct {
 
 func (x *RemovePackagesResponse) Reset() {
 	*x = RemovePackagesResponse{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[9]
+	mi := &file_proto_system_system_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -713,7 +702,7 @@ func (x *RemovePackagesResponse) String() string {
 func (*RemovePackagesResponse) ProtoMessage() {}
 
 func (x *RemovePackagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[9]
+	mi := &file_proto_system_system_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -726,7 +715,7 @@ func (x *RemovePackagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemovePackagesResponse.ProtoReflect.Descriptor instead.
 func (*RemovePackagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{9}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *RemovePackagesResponse) GetSuccess() bool {
@@ -758,7 +747,7 @@ type GetSystemInfoRequest struct {
 
 func (x *GetSystemInfoRequest) Reset() {
 	*x = GetSystemInfoRequest{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[10]
+	mi := &file_proto_system_system_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -770,7 +759,7 @@ func (x *GetSystemInfoRequest) String() string {
 func (*GetSystemInfoRequest) ProtoMessage() {}
 
 func (x *GetSystemInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[10]
+	mi := &file_proto_system_system_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -783,7 +772,7 @@ func (x *GetSystemInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSystemInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetSystemInfoRequest) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{10}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{10}
 }
 
 type GetSystemInfoResponse struct {
@@ -795,7 +784,7 @@ type GetSystemInfoResponse struct {
 
 func (x *GetSystemInfoResponse) Reset() {
 	*x = GetSystemInfoResponse{}
-	mi := &file_proto_docker_docker_system_proto_msgTypes[11]
+	mi := &file_proto_system_system_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -807,7 +796,7 @@ func (x *GetSystemInfoResponse) String() string {
 func (*GetSystemInfoResponse) ProtoMessage() {}
 
 func (x *GetSystemInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_docker_docker_system_proto_msgTypes[11]
+	mi := &file_proto_system_system_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -820,7 +809,7 @@ func (x *GetSystemInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSystemInfoResponse.ProtoReflect.Descriptor instead.
 func (*GetSystemInfoResponse) Descriptor() ([]byte, []int) {
-	return file_proto_docker_docker_system_proto_rawDescGZIP(), []int{11}
+	return file_proto_system_system_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetSystemInfoResponse) GetInfo() *SystemInfo {
@@ -830,18 +819,347 @@ func (x *GetSystemInfoResponse) GetInfo() *SystemInfo {
 	return nil
 }
 
-var File_proto_docker_docker_system_proto protoreflect.FileDescriptor
+type HostMetrics struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CpuPercent    float64                `protobuf:"fixed64,1,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
+	MemoryTotal   int64                  `protobuf:"varint,2,opt,name=memory_total,json=memoryTotal,proto3" json:"memory_total,omitempty"`
+	MemoryUsed    int64                  `protobuf:"varint,3,opt,name=memory_used,json=memoryUsed,proto3" json:"memory_used,omitempty"`
+	MemoryPercent float64                `protobuf:"fixed64,4,opt,name=memory_percent,json=memoryPercent,proto3" json:"memory_percent,omitempty"`
+	DiskTotal     int64                  `protobuf:"varint,5,opt,name=disk_total,json=diskTotal,proto3" json:"disk_total,omitempty"`
+	DiskUsed      int64                  `protobuf:"varint,6,opt,name=disk_used,json=diskUsed,proto3" json:"disk_used,omitempty"`
+	DiskPercent   float64                `protobuf:"fixed64,7,opt,name=disk_percent,json=diskPercent,proto3" json:"disk_percent,omitempty"`
+	LoadAverage   float64                `protobuf:"fixed64,8,opt,name=load_average,json=loadAverage,proto3" json:"load_average,omitempty"`
+	UptimeSeconds int64                  `protobuf:"varint,9,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
+	CpuCores      int32                  `protobuf:"varint,10,opt,name=cpu_cores,json=cpuCores,proto3" json:"cpu_cores,omitempty"`
+	Platform      string                 `protobuf:"bytes,11,opt,name=platform,proto3" json:"platform,omitempty"`
+	Processes     []*ProcessInfo         `protobuf:"bytes,12,rep,name=processes,proto3" json:"processes,omitempty"`
+	ProcessCount  int32                  `protobuf:"varint,13,opt,name=process_count,json=processCount,proto3" json:"process_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_proto_docker_docker_system_proto_rawDesc = "" +
+func (x *HostMetrics) Reset() {
+	*x = HostMetrics{}
+	mi := &file_proto_system_system_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HostMetrics) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HostMetrics) ProtoMessage() {}
+
+func (x *HostMetrics) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_system_system_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HostMetrics.ProtoReflect.Descriptor instead.
+func (*HostMetrics) Descriptor() ([]byte, []int) {
+	return file_proto_system_system_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *HostMetrics) GetCpuPercent() float64 {
+	if x != nil {
+		return x.CpuPercent
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetMemoryTotal() int64 {
+	if x != nil {
+		return x.MemoryTotal
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetMemoryUsed() int64 {
+	if x != nil {
+		return x.MemoryUsed
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetMemoryPercent() float64 {
+	if x != nil {
+		return x.MemoryPercent
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetDiskTotal() int64 {
+	if x != nil {
+		return x.DiskTotal
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetDiskUsed() int64 {
+	if x != nil {
+		return x.DiskUsed
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetDiskPercent() float64 {
+	if x != nil {
+		return x.DiskPercent
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetLoadAverage() float64 {
+	if x != nil {
+		return x.LoadAverage
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetUptimeSeconds() int64 {
+	if x != nil {
+		return x.UptimeSeconds
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetCpuCores() int32 {
+	if x != nil {
+		return x.CpuCores
+	}
+	return 0
+}
+
+func (x *HostMetrics) GetPlatform() string {
+	if x != nil {
+		return x.Platform
+	}
+	return ""
+}
+
+func (x *HostMetrics) GetProcesses() []*ProcessInfo {
+	if x != nil {
+		return x.Processes
+	}
+	return nil
+}
+
+func (x *HostMetrics) GetProcessCount() int32 {
+	if x != nil {
+		return x.ProcessCount
+	}
+	return 0
+}
+
+// Información de un proceso del sistema operativo.
+type ProcessInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Pid           int32                  `protobuf:"varint,1,opt,name=pid,proto3" json:"pid,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	CpuPercent    float64                `protobuf:"fixed64,3,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
+	MemoryPercent float64                `protobuf:"fixed64,4,opt,name=memory_percent,json=memoryPercent,proto3" json:"memory_percent,omitempty"`
+	MemoryBytes   int64                  `protobuf:"varint,5,opt,name=memory_bytes,json=memoryBytes,proto3" json:"memory_bytes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProcessInfo) Reset() {
+	*x = ProcessInfo{}
+	mi := &file_proto_system_system_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProcessInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProcessInfo) ProtoMessage() {}
+
+func (x *ProcessInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_system_system_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProcessInfo.ProtoReflect.Descriptor instead.
+func (*ProcessInfo) Descriptor() ([]byte, []int) {
+	return file_proto_system_system_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ProcessInfo) GetPid() int32 {
+	if x != nil {
+		return x.Pid
+	}
+	return 0
+}
+
+func (x *ProcessInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ProcessInfo) GetCpuPercent() float64 {
+	if x != nil {
+		return x.CpuPercent
+	}
+	return 0
+}
+
+func (x *ProcessInfo) GetMemoryPercent() float64 {
+	if x != nil {
+		return x.MemoryPercent
+	}
+	return 0
+}
+
+func (x *ProcessInfo) GetMemoryBytes() int64 {
+	if x != nil {
+		return x.MemoryBytes
+	}
+	return 0
+}
+
+type SearchProcessesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	SearchByPid   bool                   `protobuf:"varint,2,opt,name=search_by_pid,json=searchByPid,proto3" json:"search_by_pid,omitempty"`
+	Limit         int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchProcessesRequest) Reset() {
+	*x = SearchProcessesRequest{}
+	mi := &file_proto_system_system_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchProcessesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchProcessesRequest) ProtoMessage() {}
+
+func (x *SearchProcessesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_system_system_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchProcessesRequest.ProtoReflect.Descriptor instead.
+func (*SearchProcessesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_system_system_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SearchProcessesRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *SearchProcessesRequest) GetSearchByPid() bool {
+	if x != nil {
+		return x.SearchByPid
+	}
+	return false
+}
+
+func (x *SearchProcessesRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type SearchProcessesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Processes     []*ProcessInfo         `protobuf:"bytes,1,rep,name=processes,proto3" json:"processes,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchProcessesResponse) Reset() {
+	*x = SearchProcessesResponse{}
+	mi := &file_proto_system_system_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchProcessesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchProcessesResponse) ProtoMessage() {}
+
+func (x *SearchProcessesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_system_system_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchProcessesResponse.ProtoReflect.Descriptor instead.
+func (*SearchProcessesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_system_system_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SearchProcessesResponse) GetProcesses() []*ProcessInfo {
+	if x != nil {
+		return x.Processes
+	}
+	return nil
+}
+
+func (x *SearchProcessesResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+var File_proto_system_system_proto protoreflect.FileDescriptor
+
+const file_proto_system_system_proto_rawDesc = "" +
 	"\n" +
-	" proto/docker/docker_system.proto\x12\x12orchestrack.docker\"\xe4\x01\n" +
+	"\x19proto/system/system.proto\x12\x12orchestrack.system\"\xe4\x01\n" +
 	"\n" +
 	"SystemInfo\x12\x0e\n" +
 	"\x02os\x18\x01 \x01(\tR\x02os\x12\x1d\n" +
 	"\n" +
 	"os_version\x18\x02 \x01(\tR\tosVersion\x12\"\n" +
 	"\farchitecture\x18\x03 \x01(\tR\farchitecture\x12K\n" +
-	"\x0fpackage_manager\x18\x04 \x01(\x0e2\".orchestrack.docker.PackageManagerR\x0epackageManager\x126\n" +
+	"\x0fpackage_manager\x18\x04 \x01(\x0e2\".orchestrack.system.PackageManagerR\x0epackageManager\x126\n" +
 	"\x17package_manager_version\x18\x05 \x01(\tR\x15packageManagerVersion\"\xd2\x01\n" +
 	"\rSystemPackage\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
@@ -855,14 +1173,14 @@ const file_proto_docker_docker_system_proto_rawDesc = "" +
 	"\x05query\x18\x01 \x01(\tR\x05query\x12'\n" +
 	"\x0fupgradable_only\x18\x02 \x01(\bR\x0eupgradableOnly\"k\n" +
 	"\x14ListPackagesResponse\x12=\n" +
-	"\bpackages\x18\x01 \x03(\v2!.orchestrack.docker.SystemPackageR\bpackages\x12\x14\n" +
+	"\bpackages\x18\x01 \x03(\v2!.orchestrack.system.SystemPackageR\bpackages\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"1\n" +
 	"\x16RefreshPackagesRequest\x12\x17\n" +
 	"\adry_run\x18\x01 \x01(\bR\x06dryRun\"\xca\x01\n" +
 	"\x17RefreshPackagesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x16\n" +
 	"\x06output\x18\x02 \x01(\tR\x06output\x12R\n" +
-	"\x13upgradable_packages\x18\x03 \x03(\v2!.orchestrack.docker.SystemPackageR\x12upgradablePackages\x12)\n" +
+	"\x13upgradable_packages\x18\x03 \x03(\v2!.orchestrack.system.SystemPackageR\x12upgradablePackages\x12)\n" +
 	"\x10upgradable_count\x18\x04 \x01(\x05R\x0fupgradableCount\"p\n" +
 	"\x16UpgradePackagesRequest\x12\x17\n" +
 	"\adry_run\x18\x01 \x01(\bR\x06dryRun\x12!\n" +
@@ -885,7 +1203,39 @@ const file_proto_docker_docker_system_proto_rawDesc = "" +
 	"\rremoved_count\x18\x03 \x01(\x05R\fremovedCount\"\x16\n" +
 	"\x14GetSystemInfoRequest\"K\n" +
 	"\x15GetSystemInfoResponse\x122\n" +
-	"\x04info\x18\x01 \x01(\v2\x1e.orchestrack.docker.SystemInfoR\x04info*\x82\x02\n" +
+	"\x04info\x18\x01 \x01(\v2\x1e.orchestrack.system.SystemInfoR\x04info\"\xdf\x03\n" +
+	"\vHostMetrics\x12\x1f\n" +
+	"\vcpu_percent\x18\x01 \x01(\x01R\n" +
+	"cpuPercent\x12!\n" +
+	"\fmemory_total\x18\x02 \x01(\x03R\vmemoryTotal\x12\x1f\n" +
+	"\vmemory_used\x18\x03 \x01(\x03R\n" +
+	"memoryUsed\x12%\n" +
+	"\x0ememory_percent\x18\x04 \x01(\x01R\rmemoryPercent\x12\x1d\n" +
+	"\n" +
+	"disk_total\x18\x05 \x01(\x03R\tdiskTotal\x12\x1b\n" +
+	"\tdisk_used\x18\x06 \x01(\x03R\bdiskUsed\x12!\n" +
+	"\fdisk_percent\x18\a \x01(\x01R\vdiskPercent\x12!\n" +
+	"\fload_average\x18\b \x01(\x01R\vloadAverage\x12%\n" +
+	"\x0euptime_seconds\x18\t \x01(\x03R\ruptimeSeconds\x12\x1b\n" +
+	"\tcpu_cores\x18\n" +
+	" \x01(\x05R\bcpuCores\x12\x1a\n" +
+	"\bplatform\x18\v \x01(\tR\bplatform\x12=\n" +
+	"\tprocesses\x18\f \x03(\v2\x1f.orchestrack.system.ProcessInfoR\tprocesses\x12#\n" +
+	"\rprocess_count\x18\r \x01(\x05R\fprocessCount\"\x9e\x01\n" +
+	"\vProcessInfo\x12\x10\n" +
+	"\x03pid\x18\x01 \x01(\x05R\x03pid\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
+	"\vcpu_percent\x18\x03 \x01(\x01R\n" +
+	"cpuPercent\x12%\n" +
+	"\x0ememory_percent\x18\x04 \x01(\x01R\rmemoryPercent\x12!\n" +
+	"\fmemory_bytes\x18\x05 \x01(\x03R\vmemoryBytes\"h\n" +
+	"\x16SearchProcessesRequest\x12\x14\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x12\"\n" +
+	"\rsearch_by_pid\x18\x02 \x01(\bR\vsearchByPid\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\"n\n" +
+	"\x17SearchProcessesResponse\x12=\n" +
+	"\tprocesses\x18\x01 \x03(\v2\x1f.orchestrack.system.ProcessInfoR\tprocesses\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total*\x82\x02\n" +
 	"\x0ePackageManager\x12\x1f\n" +
 	"\x1bPACKAGE_MANAGER_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13PACKAGE_MANAGER_APT\x10\x01\x12\x17\n" +
@@ -895,70 +1245,76 @@ const file_proto_docker_docker_system_proto_rawDesc = "" +
 	"\x13PACKAGE_MANAGER_APK\x10\x05\x12\x18\n" +
 	"\x14PACKAGE_MANAGER_BREW\x10\x06\x12\x19\n" +
 	"\x15PACKAGE_MANAGER_CHOCO\x10\a\x12\x1a\n" +
-	"\x16PACKAGE_MANAGER_WINGET\x10\bB7Z5github.com/go/orchestrack/backend/proto/docker;dockerb\x06proto3"
+	"\x16PACKAGE_MANAGER_WINGET\x10\bB7Z5github.com/go/orchestrack/backend/proto/system;systemb\x06proto3"
 
 var (
-	file_proto_docker_docker_system_proto_rawDescOnce sync.Once
-	file_proto_docker_docker_system_proto_rawDescData []byte
+	file_proto_system_system_proto_rawDescOnce sync.Once
+	file_proto_system_system_proto_rawDescData []byte
 )
 
-func file_proto_docker_docker_system_proto_rawDescGZIP() []byte {
-	file_proto_docker_docker_system_proto_rawDescOnce.Do(func() {
-		file_proto_docker_docker_system_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_docker_docker_system_proto_rawDesc), len(file_proto_docker_docker_system_proto_rawDesc)))
+func file_proto_system_system_proto_rawDescGZIP() []byte {
+	file_proto_system_system_proto_rawDescOnce.Do(func() {
+		file_proto_system_system_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_system_system_proto_rawDesc), len(file_proto_system_system_proto_rawDesc)))
 	})
-	return file_proto_docker_docker_system_proto_rawDescData
+	return file_proto_system_system_proto_rawDescData
 }
 
-var file_proto_docker_docker_system_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_docker_docker_system_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_proto_docker_docker_system_proto_goTypes = []any{
-	(PackageManager)(0),             // 0: orchestrack.docker.PackageManager
-	(*SystemInfo)(nil),              // 1: orchestrack.docker.SystemInfo
-	(*SystemPackage)(nil),           // 2: orchestrack.docker.SystemPackage
-	(*ListPackagesRequest)(nil),     // 3: orchestrack.docker.ListPackagesRequest
-	(*ListPackagesResponse)(nil),    // 4: orchestrack.docker.ListPackagesResponse
-	(*RefreshPackagesRequest)(nil),  // 5: orchestrack.docker.RefreshPackagesRequest
-	(*RefreshPackagesResponse)(nil), // 6: orchestrack.docker.RefreshPackagesResponse
-	(*UpgradePackagesRequest)(nil),  // 7: orchestrack.docker.UpgradePackagesRequest
-	(*UpgradePackagesResponse)(nil), // 8: orchestrack.docker.UpgradePackagesResponse
-	(*RemovePackagesRequest)(nil),   // 9: orchestrack.docker.RemovePackagesRequest
-	(*RemovePackagesResponse)(nil),  // 10: orchestrack.docker.RemovePackagesResponse
-	(*GetSystemInfoRequest)(nil),    // 11: orchestrack.docker.GetSystemInfoRequest
-	(*GetSystemInfoResponse)(nil),   // 12: orchestrack.docker.GetSystemInfoResponse
+var file_proto_system_system_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_proto_system_system_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_proto_system_system_proto_goTypes = []any{
+	(PackageManager)(0),             // 0: orchestrack.system.PackageManager
+	(*SystemInfo)(nil),              // 1: orchestrack.system.SystemInfo
+	(*SystemPackage)(nil),           // 2: orchestrack.system.SystemPackage
+	(*ListPackagesRequest)(nil),     // 3: orchestrack.system.ListPackagesRequest
+	(*ListPackagesResponse)(nil),    // 4: orchestrack.system.ListPackagesResponse
+	(*RefreshPackagesRequest)(nil),  // 5: orchestrack.system.RefreshPackagesRequest
+	(*RefreshPackagesResponse)(nil), // 6: orchestrack.system.RefreshPackagesResponse
+	(*UpgradePackagesRequest)(nil),  // 7: orchestrack.system.UpgradePackagesRequest
+	(*UpgradePackagesResponse)(nil), // 8: orchestrack.system.UpgradePackagesResponse
+	(*RemovePackagesRequest)(nil),   // 9: orchestrack.system.RemovePackagesRequest
+	(*RemovePackagesResponse)(nil),  // 10: orchestrack.system.RemovePackagesResponse
+	(*GetSystemInfoRequest)(nil),    // 11: orchestrack.system.GetSystemInfoRequest
+	(*GetSystemInfoResponse)(nil),   // 12: orchestrack.system.GetSystemInfoResponse
+	(*HostMetrics)(nil),             // 13: orchestrack.system.HostMetrics
+	(*ProcessInfo)(nil),             // 14: orchestrack.system.ProcessInfo
+	(*SearchProcessesRequest)(nil),  // 15: orchestrack.system.SearchProcessesRequest
+	(*SearchProcessesResponse)(nil), // 16: orchestrack.system.SearchProcessesResponse
 }
-var file_proto_docker_docker_system_proto_depIdxs = []int32{
-	0, // 0: orchestrack.docker.SystemInfo.package_manager:type_name -> orchestrack.docker.PackageManager
-	2, // 1: orchestrack.docker.ListPackagesResponse.packages:type_name -> orchestrack.docker.SystemPackage
-	2, // 2: orchestrack.docker.RefreshPackagesResponse.upgradable_packages:type_name -> orchestrack.docker.SystemPackage
-	1, // 3: orchestrack.docker.GetSystemInfoResponse.info:type_name -> orchestrack.docker.SystemInfo
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+var file_proto_system_system_proto_depIdxs = []int32{
+	0,  // 0: orchestrack.system.SystemInfo.package_manager:type_name -> orchestrack.system.PackageManager
+	2,  // 1: orchestrack.system.ListPackagesResponse.packages:type_name -> orchestrack.system.SystemPackage
+	2,  // 2: orchestrack.system.RefreshPackagesResponse.upgradable_packages:type_name -> orchestrack.system.SystemPackage
+	1,  // 3: orchestrack.system.GetSystemInfoResponse.info:type_name -> orchestrack.system.SystemInfo
+	14, // 4: orchestrack.system.HostMetrics.processes:type_name -> orchestrack.system.ProcessInfo
+	14, // 5: orchestrack.system.SearchProcessesResponse.processes:type_name -> orchestrack.system.ProcessInfo
+	6,  // [6:6] is the sub-list for method output_type
+	6,  // [6:6] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_proto_docker_docker_system_proto_init() }
-func file_proto_docker_docker_system_proto_init() {
-	if File_proto_docker_docker_system_proto != nil {
+func init() { file_proto_system_system_proto_init() }
+func file_proto_system_system_proto_init() {
+	if File_proto_system_system_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_docker_docker_system_proto_rawDesc), len(file_proto_docker_docker_system_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_system_system_proto_rawDesc), len(file_proto_system_system_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   12,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_docker_docker_system_proto_goTypes,
-		DependencyIndexes: file_proto_docker_docker_system_proto_depIdxs,
-		EnumInfos:         file_proto_docker_docker_system_proto_enumTypes,
-		MessageInfos:      file_proto_docker_docker_system_proto_msgTypes,
+		GoTypes:           file_proto_system_system_proto_goTypes,
+		DependencyIndexes: file_proto_system_system_proto_depIdxs,
+		EnumInfos:         file_proto_system_system_proto_enumTypes,
+		MessageInfos:      file_proto_system_system_proto_msgTypes,
 	}.Build()
-	File_proto_docker_docker_system_proto = out.File
-	file_proto_docker_docker_system_proto_goTypes = nil
-	file_proto_docker_docker_system_proto_depIdxs = nil
+	File_proto_system_system_proto = out.File
+	file_proto_system_system_proto_goTypes = nil
+	file_proto_system_system_proto_depIdxs = nil
 }
