@@ -1,15 +1,20 @@
 package handlers
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/go/orchestrack/backend/api-service/src/cache"
 	"github.com/go/orchestrack/backend/api-service/src/commander"
+	"github.com/go/orchestrack/backend/api-service/src/engine"
 	"github.com/go/orchestrack/backend/api-service/src/models"
 	"github.com/go/orchestrack/backend/api-service/src/repository"
 	"github.com/go/orchestrack/backend/api-service/src/websocket"
@@ -26,6 +31,10 @@ var (
 // SubscribeContainerEvents se suscribe a eventos de contenedores y heartbeats.
 // Si se proporciona un Hub, los eventos se reenvían a los clientes WebSocket.
 func SubscribeContainerEvents(registry *cache.Registry, history *cache.ConnectionHistory, hub *websocket.Hub, logger *slog.Logger) error {
+	if hub != nil {
+		engine.GetCorrelationEngine().SetHub(hub)
+	}
+
 	if err := subscribeHeartbeats(registry, history, hub, logger); err != nil {
 		return err
 	}
@@ -49,6 +58,9 @@ func SubscribeContainerEvents(registry *cache.Registry, history *cache.Connectio
 		return err
 	}
 	if err := subscribeContainerEvent(hub, logger); err != nil {
+		return err
+	}
+	if err := subscribeContainerEvidence(hub, logger); err != nil {
 		return err
 	}
 
@@ -287,6 +299,7 @@ func subscribeHeartbeats(registry *cache.Registry, history *cache.ConnectionHist
 				if err := repository.InsertAlert(context.Background(), alert); err == nil {
 					broadcastEvent(hub, "dashboard", "alert.created", alert)
 					broadcastEvent(hub, "device:"+heartbeat.ServiceId, "alert.created", alert)
+					_ = engine.GetCorrelationEngine().ProcessHostAlert(context.Background(), heartbeat.ServiceId, "high_latency", alertMsg, fmt.Sprintf("%d", alert.ID))
 				}
 			}
 		}
@@ -626,6 +639,9 @@ func subscribeContainerEvent(hub *websocket.Hub, logger *slog.Logger) error {
 			logger.Warn("failed to insert container event", "error", err)
 		}
 
+		// Evaluar evento en el motor de correlación de causa raíz (T-010)
+		_ = engine.GetCorrelationEngine().ProcessContainerEvent(context.Background(), event.ServiceId, evt)
+
 		// Generar alerta no leída si el evento es crítico
 		if isCriticalContainerEvent(event.EventType, event.ExitCode) {
 			if err := repository.InsertAlert(context.Background(), buildContainerEventAlert(&event)); err != nil {
@@ -704,4 +720,97 @@ func GetConnectionStats(ctx context.Context, registry *cache.Registry) (onlineCo
 	offlineCount = totalCount - onlineCount
 
 	return onlineCount, offlineCount, totalCount, nil
+}
+
+// subscribeContainerEvidence se suscribe a los paquetes de evidencia enviados por los agentes.
+// Descomprime el payload gzip, lo persiste en base de datos y notifica mediante WebSocket (T-024).
+func subscribeContainerEvidence(hub *websocket.Hub, logger *slog.Logger) error {
+	_, err := events.SubscribeAsync(events.EventSubject(events.SubjectContainerEvidence, "*"), func(data []byte) {
+		var event docker.ContainerEvidenceEvent
+		if err := proto.Unmarshal(data, &event); err != nil {
+			logger.Warn("failed to unmarshal container evidence event", "error", err)
+			return
+		}
+
+		logger.Info("recibido paquete de evidencia de contenedor", "service_id", event.ServiceId, "container_id", event.ContainerId)
+
+		// 1. Encontrar el incidente abierto actualmente para este dispositivo
+		openInc, err := repository.GetOpenIncidentByDevice(context.Background(), event.ServiceId)
+		if err != nil {
+			logger.Warn("error al buscar incidente para evidencia", "error", err)
+			return
+		}
+
+		var incidentID string
+		if openInc != nil {
+			incidentID = openInc.ID
+		} else {
+			// Si no hay incidente abierto, buscamos el incidente más reciente
+			incidents, err := repository.ListIncidents(context.Background(), event.ServiceId, "", 1)
+			if err != nil || len(incidents) == 0 {
+				logger.Warn("no se encontró ningún incidente asociado a la evidencia del dispositivo", "service_id", event.ServiceId)
+				return
+			}
+			incidentID = incidents[0].ID
+		}
+
+		// 2. Descomprimir el payload gzip
+		var uncompressed bytes.Buffer
+		gr, err := gzip.NewReader(bytes.NewReader(event.Payload))
+		if err != nil {
+			logger.Warn("failed to create gzip reader for evidence payload", "error", err)
+			return
+		}
+		if _, err := io.Copy(&uncompressed, gr); err != nil {
+			logger.Warn("failed to decompress evidence payload", "error", err)
+			gr.Close()
+			return
+		}
+		gr.Close()
+
+		// 3. Guardar en base de datos (T-023)
+		evidence := &models.IncidentEvidence{
+			IncidentID:   incidentID,
+			DeviceID:     event.ServiceId,
+			EvidenceType: "container_incident",
+			PayloadJSON:  uncompressed.String(),
+		}
+
+		if err := repository.InsertIncidentEvidence(context.Background(), evidence); err != nil {
+			logger.Warn("failed to insert incident evidence in DB", "error", err)
+			return
+		}
+
+		// Contar artefactos recolectados
+		var bundle struct {
+			ContainerLogs string      `json:"container_logs"`
+			DockerLogs    string      `json:"docker_logs"`
+			HostMetrics   interface{} `json:"host_metrics"`
+		}
+		_ = json.Unmarshal(uncompressed.Bytes(), &bundle)
+
+		artifactCount := 0
+		if bundle.ContainerLogs != "" && !strings.Contains(bundle.ContainerLogs, "Error al extraer logs") {
+			artifactCount++
+		}
+		if bundle.DockerLogs != "" && !strings.Contains(bundle.DockerLogs, "No se pudo acceder") {
+			artifactCount++
+		}
+		if bundle.HostMetrics != nil {
+			artifactCount++
+		}
+
+		// 4. Emitir evento WebSocket "evidence_ready" (T-024)
+		websocketPayload := map[string]interface{}{
+			"incident_id":    incidentID,
+			"device_id":      event.ServiceId,
+			"artifact_count": artifactCount,
+			"timestamp":      time.Now().Unix(),
+		}
+		broadcastEvent(hub, "device:"+event.ServiceId, "evidence_ready", websocketPayload)
+		broadcastEvent(hub, "dashboard", "evidence_ready", websocketPayload)
+
+		logger.Info("paquete de evidencia procesado, guardado y notificado vía WebSocket", "incident_id", incidentID, "artifacts", artifactCount)
+	})
+	return err
 }
