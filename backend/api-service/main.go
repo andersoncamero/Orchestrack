@@ -80,10 +80,23 @@ func BindRoutes(s ports.Server, r *mux.Router) {
 	protected.HandleFunc("/system/retention/cleanup", handlers.TriggerMetricsCleanupHandler(s)).Methods(http.MethodPost)
 	protected.HandleFunc("/ws", s.Hub().HandleWebSocket)
 
+	// Rutas de Incidentes y Causa Raíz (DoD T-011)
+	protected.HandleFunc("/incidents", handlers.GetIncidentsHandler).Methods(http.MethodGet)
+	protected.HandleFunc("/incidents/{id}", handlers.GetIncidentByIDHandler).Methods(http.MethodGet)
+	protected.HandleFunc("/incidents/{id}/timeline", handlers.GetIncidentTimelineHandler).Methods(http.MethodGet)
+	protected.HandleFunc("/incidents/{id}/propagation", handlers.GetIncidentPropagationHandler).Methods(http.MethodGet)
+	protected.HandleFunc("/incidents/{id}/transactions", handlers.GetIncidentTransactionsHandler).Methods(http.MethodGet)
+	protected.HandleFunc("/incidents/{id}/evidence", handlers.GetIncidentEvidenceHandler).Methods(http.MethodGet)
+	protected.HandleFunc("/incidents/{id}/evidence/export", handlers.ExportIncidentEvidenceHandler).Methods(http.MethodGet)
+
+	// Rutas de Topología Multi-Host y Dependencias (DoD T-015)
+	protected.HandleFunc("/topology/multi-host", handlers.GetMultiHostTopologyHandler).Methods(http.MethodGet)
+
 	instances := protected.PathPrefix("/instances/{identifier}").Subrouter()
 	instances.HandleFunc("/approve", handlers.ApproveDeviceHandler(s)).Methods(http.MethodPost)
 	instances.HandleFunc("/history", handlers.DeviceConnectionHistoryHandler(s)).Methods(http.MethodGet)
 	instances.HandleFunc("/containers", handlers.ListContainersHandler(s)).Methods(http.MethodGet)
+	instances.HandleFunc("/containers/topology", handlers.GetContainerTopologyHandler(s)).Methods(http.MethodGet)
 	instances.HandleFunc("/containers/{id}", handlers.GetContainerHandler(s)).Methods(http.MethodGet)
 	instances.HandleFunc("/containers/{id}/events", handlers.ListContainerEventsHandler(s)).Methods(http.MethodGet)
 	instances.HandleFunc("/containers/{id}/logs", handlers.GetContainerLogsHandler(s)).Methods(http.MethodGet)
