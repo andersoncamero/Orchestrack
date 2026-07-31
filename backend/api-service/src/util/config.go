@@ -15,6 +15,7 @@ type Config struct {
 	LogLevel    string
 	DatabaseURL string
 	JWTSecret   string
+	MongoURL    string
 }
 
 // LoadConfig carga la configuración desde variables de entorno o valores por defecto.
@@ -29,6 +30,10 @@ func LoadConfig() (*Config, error) {
 	natsURL := os.Getenv("NATS_URL")
 	databaseURL := os.Getenv("DATABASE_URL")
 	jwtSecret := os.Getenv("JWT_SECRET")
+	mongoURL := os.Getenv("MONGO_URL")
+	if mongoURL == "" {
+		mongoURL = "mongodb://localhost:27017"
+	}
 
 	return &Config{
 		HTTPPort:    port,
@@ -36,6 +41,7 @@ func LoadConfig() (*Config, error) {
 		LogLevel:    logLevel,
 		DatabaseURL: databaseURL,
 		JWTSecret:   jwtSecret,
+		MongoURL:    mongoURL,
 	}, nil
 }
 

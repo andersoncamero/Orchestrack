@@ -71,7 +71,7 @@ func NewServer(config *util.Config, logger *slog.Logger) (ports.Server, error) {
 		return nil, errors.New("jwt secret is required")
 	}
 
-	postgresRepo, err := database.NewPostgresRepository(config.DatabaseURL)
+	postgresRepo, err := database.NewPostgresRepository(config.DatabaseURL, config.MongoURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create postgres repository: %w", err)
 	}

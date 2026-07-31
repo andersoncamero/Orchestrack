@@ -16,7 +16,7 @@ services:
       POSTGRES_PASSWORD: admin123
       POSTGRES_DB: orchestrack_dev
     ports:
-      - "5434:5432"
+      - "5435:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
@@ -34,8 +34,19 @@ services:
     depends_on:
       - nats
 
+  mongodb:
+    image: mongo:6.0
+    container_name: orchestrack-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - orchestrack
+
 volumes:
   postgres-data:
+  mongo-data:
 
 networks:
   orchestrack:
