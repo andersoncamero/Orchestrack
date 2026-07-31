@@ -15,6 +15,7 @@ const (
 	SubjectCommandRenameContainer  = "commands.orchestrack-agent.{identifier}.containers.rename"
 	SubjectCommandRemoveContainer  = "commands.orchestrack-agent.{identifier}.containers.remove"
 	SubjectCommandGetContainerLogs = "commands.orchestrack-agent.{identifier}.containers.logs"
+	SubjectCommandGetContainerTopology = "commands.orchestrack-agent.{identifier}.containers.topology"
 	SubjectCommandListImages       = "commands.orchestrack-agent.{identifier}.images.list"
 	SubjectCommandPullImage        = "commands.orchestrack-agent.{identifier}.images.pull"
 	SubjectCommandRemoveImage      = "commands.orchestrack-agent.{identifier}.images.remove"
@@ -37,6 +38,7 @@ const (
 	SubjectContainerRenamed     = "events.orchestrack-agent.{identifier}.container.renamed"
 	SubjectContainerRemoved     = "events.orchestrack-agent.{identifier}.container.removed"
 	SubjectContainerEvent       = "events.orchestrack-agent.{identifier}.container_event"
+	SubjectContainerEvidence    = "events.orchestrack-agent.{identifier}.evidence"
 	SubjectContainerEventsAll   = "events.orchestrack-agent.>"
 
 	// Image event subjects

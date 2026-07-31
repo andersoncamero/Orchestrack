@@ -599,6 +599,82 @@ func (x *AgentStatusEvent) GetReason() string {
 	return ""
 }
 
+type ContainerEvidenceEvent struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ServiceId     string                 `protobuf:"bytes,1,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	ContainerId   string                 `protobuf:"bytes,2,opt,name=container_id,json=containerId,proto3" json:"container_id,omitempty"`
+	ContainerName string                 `protobuf:"bytes,3,opt,name=container_name,json=containerName,proto3" json:"container_name,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Payload       []byte                 `protobuf:"bytes,5,opt,name=payload,proto3" json:"payload,omitempty"` // JSON comprimido con gzip (EvidenceBundle)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContainerEvidenceEvent) Reset() {
+	*x = ContainerEvidenceEvent{}
+	mi := &file_proto_docker_docker_events_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContainerEvidenceEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContainerEvidenceEvent) ProtoMessage() {}
+
+func (x *ContainerEvidenceEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_docker_docker_events_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContainerEvidenceEvent.ProtoReflect.Descriptor instead.
+func (*ContainerEvidenceEvent) Descriptor() ([]byte, []int) {
+	return file_proto_docker_docker_events_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ContainerEvidenceEvent) GetServiceId() string {
+	if x != nil {
+		return x.ServiceId
+	}
+	return ""
+}
+
+func (x *ContainerEvidenceEvent) GetContainerId() string {
+	if x != nil {
+		return x.ContainerId
+	}
+	return ""
+}
+
+func (x *ContainerEvidenceEvent) GetContainerName() string {
+	if x != nil {
+		return x.ContainerName
+	}
+	return ""
+}
+
+func (x *ContainerEvidenceEvent) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *ContainerEvidenceEvent) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
 var File_proto_docker_docker_events_proto protoreflect.FileDescriptor
 
 const file_proto_docker_docker_events_proto_rawDesc = "" +
@@ -657,7 +733,14 @@ const file_proto_docker_docker_events_proto_rawDesc = "" +
 	"\bhostname\x18\x02 \x01(\tR\bhostname\x12\x16\n" +
 	"\x06status\x18\x03 \x01(\tR\x06status\x12\x1c\n" +
 	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp\x12\x16\n" +
-	"\x06reason\x18\x05 \x01(\tR\x06reasonB7Z5github.com/go/orchestrack/backend/proto/docker;dockerb\x06proto3"
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"\xb9\x01\n" +
+	"\x16ContainerEvidenceEvent\x12\x1d\n" +
+	"\n" +
+	"service_id\x18\x01 \x01(\tR\tserviceId\x12!\n" +
+	"\fcontainer_id\x18\x02 \x01(\tR\vcontainerId\x12%\n" +
+	"\x0econtainer_name\x18\x03 \x01(\tR\rcontainerName\x12\x1c\n" +
+	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp\x12\x18\n" +
+	"\apayload\x18\x05 \x01(\fR\apayloadB7Z5github.com/go/orchestrack/backend/proto/docker;dockerb\x06proto3"
 
 var (
 	file_proto_docker_docker_events_proto_rawDescOnce sync.Once
@@ -671,7 +754,7 @@ func file_proto_docker_docker_events_proto_rawDescGZIP() []byte {
 	return file_proto_docker_docker_events_proto_rawDescData
 }
 
-var file_proto_docker_docker_events_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_docker_docker_events_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_proto_docker_docker_events_proto_goTypes = []any{
 	(*ContainerCreatedEvent)(nil),   // 0: orchestrack.docker.ContainerCreatedEvent
 	(*ContainerStartedEvent)(nil),   // 1: orchestrack.docker.ContainerStartedEvent
@@ -681,6 +764,7 @@ var file_proto_docker_docker_events_proto_goTypes = []any{
 	(*ContainerRemovedEvent)(nil),   // 5: orchestrack.docker.ContainerRemovedEvent
 	(*ContainerEvent)(nil),          // 6: orchestrack.docker.ContainerEvent
 	(*AgentStatusEvent)(nil),        // 7: orchestrack.docker.AgentStatusEvent
+	(*ContainerEvidenceEvent)(nil),  // 8: orchestrack.docker.ContainerEvidenceEvent
 }
 var file_proto_docker_docker_events_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -701,7 +785,7 @@ func file_proto_docker_docker_events_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_docker_docker_events_proto_rawDesc), len(file_proto_docker_docker_events_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

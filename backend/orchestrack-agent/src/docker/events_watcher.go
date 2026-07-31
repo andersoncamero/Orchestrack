@@ -127,6 +127,31 @@ func (w *EventsWatcher) handleMessage(msg dockerevents.Message) {
 		return
 	}
 	w.logger.Debug("evento de contenedor publicado", "subject", subject, "container", event.ContainerName, "event_type", event.EventType, "exit_code", event.ExitCode, "reason", event.Reason)
+
+	// Iniciar de forma asíncrona la recolección de evidencias si es un evento crítico/incidente
+	isCritical := event.EventType == "oom" ||
+		(event.EventType == "die" && event.ExitCode != 0) ||
+		(strings.HasPrefix(event.EventType, "health_status") && strings.Contains(event.EventType, "unhealthy"))
+
+	if isCritical {
+		go func(serviceID, containerID, containerName string, eventType string) {
+			w.logger.Info("alerta/incidente crítica detectada en el agente; iniciando recolector de evidencia instantánea...", "container", containerName, "event_type", eventType)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			bundle, err := CollectEvidence(ctx, serviceID, containerID, containerName)
+			if err != nil {
+				w.logger.Error("error al recolectar evidencia", "container", containerName, "error", err)
+				return
+			}
+
+			if err := CompressAndPublishEvidence(ctx, serviceID, bundle); err != nil {
+				w.logger.Error("error al comprimir/publicar evidencia", "container", containerName, "error", err)
+				return
+			}
+			w.logger.Info("evidencia de incidente enviada exitosamente a través de NATS", "container", containerName)
+		}(w.serviceID, event.ContainerId, event.ContainerName, event.EventType)
+	}
 }
 
 // mapEventMessageToProto convierte un events.Message del Docker SDK en un
