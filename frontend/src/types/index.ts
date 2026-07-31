@@ -228,3 +228,145 @@ export interface DeviceNetworkMetricsResponse {
   total: number
 }
 
+export interface IncidentEvent {
+  id: string
+  incident_id: string
+  event_id: string
+  event_type: string
+  container_id?: string
+  container_name?: string
+  sequence_order: number
+  created_at: string
+}
+
+export interface Incident {
+  id: string
+  title: string
+  device_id: string
+  root_cause_event_id: string
+  root_cause_type: string
+  status: 'open' | 'resolved'
+  severity: 'critical' | 'warning' | 'info'
+  started_at: string
+  resolved_at?: string
+  created_at: string
+  updated_at: string
+  events?: IncidentEvent[]
+}
+
+export interface IncidentTimelineResponse {
+  incident_id: string
+  timeline: IncidentEvent[]
+}
+
+export interface IncidentEvidence {
+  id: string
+  incident_id: string
+  device_id: string
+  evidence_type: string
+  payload_json: string
+  created_at: string
+}
+
+export interface IncidentPropagation {
+  id: string
+  incident_id: string
+  from_device_id: string
+  to_device_id: string
+  from_hostname: string
+  to_hostname: string
+  propagation_type: string
+  time_delta_sec: number
+  created_at: string
+}
+
+export interface BlastRadius {
+  incident_id: string
+  affected_devices: number
+  affected_containers: number
+  total_devices: number
+  total_containers: number
+  propagation_depth: number
+  max_propagation_depth: number
+}
+
+export interface IncidentPropagationResponse {
+  incident_id: string
+  origin: string
+  propagations: IncidentPropagation[]
+  propagation_paths: { id: string; incident_id: string; step_order: number; affected_device_id: string; affected_container_id?: string }[]
+  blast_radius: BlastRadius
+}
+
+export interface ServerDependency {
+  source_device_id: string
+  source_hostname: string
+  target_device_id: string
+  target_hostname: string
+  dependency_type: string
+}
+
+export interface TopologyResponse {
+  topology: ServerDependency[]
+  nodes: number
+  edges: number
+}
+
+export interface AffectedTransaction {
+  id: string
+  incident_id: string
+  device_id: string
+  service_category: string
+  transaction_type: string
+  failed_count: number
+  window_start: string
+  window_end: string
+  created_at: string
+}
+
+export interface TransactionCategoryGroup {
+  category: string
+  label: string
+  failed_count: number
+  transaction_types: string[]
+}
+
+export interface IncidentTransactionsResponse {
+  incident_id: string
+  total_failed: number
+  affected_devices: number
+  categories: TransactionCategoryGroup[]
+  transactions: AffectedTransaction[]
+}
+
+export interface ServerTransactionImpact {
+  id: string
+  incident_id: string
+  server_transaction_id: string
+  failed_requests_count: number
+  error_code: string
+  created_at: string
+  device_id: string
+  service_name: string
+  endpoint?: string
+}
+
+export interface IncidentServerTransactionsResponse {
+  incident_id: string
+  total_records: number
+  records: ServerTransactionImpact[]
+}
+
+export interface ContainerNetworkLink {
+  source_container_id: string
+  source_container_name: string
+  target_container_id: string
+  target_container_name: string
+  network: string
+  type: 'network_shared' | 'compose_link' | 'port_exposed'
+}
+
+export interface ContainerTopologyResponse {
+  links: ContainerNetworkLink[]
+}
+

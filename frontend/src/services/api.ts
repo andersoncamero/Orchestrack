@@ -1,4 +1,4 @@
-import type { ConnectionHistoryResponse, Container, ContainerEvent, ContainerSummary, HostMetrics, ImageSearchResponse, ImageSummary, Instance, ListPackagesResponse, RefreshPackagesResponse, RemovePackagesResponse, SearchProcessesResponse, SystemInfo, UpgradePackagesResponse, DeviceConnectionHistoryResponse, DeviceNetworkMetricsResponse } from '../types'
+import type { ConnectionHistoryResponse, Container, ContainerEvent, ContainerSummary, ContainerTopologyResponse, HostMetrics, ImageSearchResponse, ImageSummary, Instance, ListPackagesResponse, RefreshPackagesResponse, RemovePackagesResponse, SearchProcessesResponse, SystemInfo, UpgradePackagesResponse, DeviceConnectionHistoryResponse, DeviceNetworkMetricsResponse, Incident, IncidentTimelineResponse, IncidentPropagationResponse, TopologyResponse, IncidentTransactionsResponse, IncidentServerTransactionsResponse, IncidentEvidence } from '../types'
 import { getToken } from '../contexts/AuthContext'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
@@ -240,4 +240,32 @@ export const api = {
       method: 'POST',
     })
   },
+
+  getIncidents: (deviceId?: string, status?: string, limit = 50) => {
+    const params = new URLSearchParams()
+    if (deviceId) params.set('device_id', deviceId)
+    if (status) params.set('status', status)
+    if (limit) params.set('limit', limit.toString())
+    return fetchJson<Incident[]>(`/api/v1/incidents?${params.toString()}`)
+  },
+
+  getIncidentByID: (id: string) => fetchJson<Incident>(`/api/v1/incidents/${id}`),
+
+  getIncidentTimeline: (id: string) => fetchJson<IncidentTimelineResponse>(`/api/v1/incidents/${id}/timeline`),
+
+  getIncidentPropagation: (id: string) => fetchJson<IncidentPropagationResponse>(`/api/v1/incidents/${id}/propagation`),
+
+  getTopology: () => fetchJson<TopologyResponse>('/api/v1/topology/multi-host'),
+
+  getIncidentTransactions: (incidentId: string) =>
+    fetchJson<IncidentTransactionsResponse>(`/api/v1/incidents/${incidentId}/transactions`),
+
+  getIncidentServerTransactions: (incidentId: string) =>
+    fetchJson<IncidentServerTransactionsResponse>(`/api/v1/incidents/${incidentId}/server-transactions`),
+
+  getIncidentEvidence: (incidentId: string) =>
+    fetchJson<IncidentEvidence[]>(`/api/v1/incidents/${incidentId}/evidence`),
+
+  getContainerTopology: (identifier: string) =>
+    fetchJson<ContainerTopologyResponse>(`/api/v1/instances/${identifier}/containers/topology`),
 }
