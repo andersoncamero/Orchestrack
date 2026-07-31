@@ -10,6 +10,9 @@ import { InstanceAlertsTable } from '../organisms/InstanceAlertsTable'
 import { NetworkMetricsChart } from '../organisms/NetworkMetricsChart'
 import { UserNavActions } from '../molecules/UserNavActions'
 import { useInstances } from '../../hooks/useInstances'
+import { useIncidents } from '../../hooks/useIncidents'
+import { useAffectedTransactions } from '../../hooks/useAffectedTransactions'
+import { TransactionImpactPanel } from '../organisms/TransactionImpactPanel'
 import { useState, useMemo, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebSocket } from '../../hooks/useWebSocket'
@@ -24,7 +27,17 @@ export default function InstanceDetailPage() {
   const { t } = useLanguage()
   const { instances, loading: loadingInstances } = useInstances()
   const { history: netHistory, latestMetrics: netLatest, loading: loadingNet } = useNetworkMetrics(service_id)
-  
+  const { incidents: openIncidents } = useIncidents({ deviceId: service_id, status: 'open', limit: 1 })
+  const activeIncident = openIncidents[0]
+  const {
+    transactions,
+    serverTransactions,
+    categoryGroups,
+    totalFailed,
+    loading: txLoading,
+    error: txError,
+  } = useAffectedTransactions({ incidentId: activeIncident?.id, deviceId: service_id })
+
   const [localInstance, setLocalInstance] = useState<Instance | null>(null)
   const [range, setRange] = useState<TimeRange>('24h')
   
@@ -237,6 +250,31 @@ export default function InstanceDetailPage() {
           latestRxBytesPerSec={netLatest?.rx_bytes_per_sec || metrics?.rx_bytes_per_sec || 0}
           latestTxBytesPerSec={netLatest?.tx_bytes_per_sec || metrics?.tx_bytes_per_sec || 0}
         />
+
+        {/* Transacciones y Servicios Afectados (T-021) */}
+        {activeIncident && (
+          <div className="space-y-4">
+            <h3 className="text-text-main font-semibold text-lg">
+              {t('affectedTransactionsAndServices')}
+            </h3>
+            <TransactionImpactPanel
+              transactionsData={{
+                incident_id: activeIncident.id,
+                total_failed: totalFailed,
+                affected_devices: 1,
+                categories: categoryGroups,
+                transactions,
+              }}
+              serverTransactionsData={{
+                incident_id: activeIncident.id,
+                total_records: serverTransactions.length,
+                records: serverTransactions,
+              }}
+              loading={txLoading}
+              error={txError}
+            />
+          </div>
+        )}
 
         {/* Alerts & Resource Usage Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

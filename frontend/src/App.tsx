@@ -14,6 +14,7 @@ import AlertsPage from './components/pages/AlertsPage'
 import ProcessesPage from './components/pages/ProcessesPage'
 import PackagesPage from './components/pages/PackagesPage'
 import SettingsPage from './components/pages/SettingsPage'
+import TopologyPage from './components/pages/TopologyPage'
 import LoginPage from './components/pages/LoginPage'
 import SignupPage from './components/pages/SignupPage'
 import ForgotPasswordPage from './components/pages/ForgotPasswordPage'
@@ -172,6 +173,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/topology"
+        element={
+          <ProtectedRoute>
+            <TopologyPage />
           </ProtectedRoute>
         }
       />

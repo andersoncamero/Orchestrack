@@ -124,6 +124,21 @@ func ListContainersHandler(s ports.Server) http.HandlerFunc {
 	}
 }
 
+// GetContainerTopologyHandler devuelve el grafo de relaciones entre contenedores de una instancia.
+func GetContainerTopologyHandler(s ports.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		identifier := mux.Vars(r)["identifier"]
+		serviceID := resolveIdentifier(identifier, hostnameRegistry(s))
+
+		resp, err := commander.GetContainerTopology(r.Context(), serviceID, hostnameRegistry(s), &docker.GetContainerTopologyRequest{All: true})
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, resp)
+	}
+}
+
 // GetContainerHandler devuelve el detalle de un contenedor.
 func GetContainerHandler(s ports.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

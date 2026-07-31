@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react'
-import { Bell, Server, AlertTriangle, CheckCircle2, Eye, ArrowLeft } from 'lucide-react'
+import { Bell, Server, AlertTriangle, CheckCircle2, Eye, ArrowLeft, Activity, Zap } from 'lucide-react'
 import { MainLayout } from '../templates/MainLayout'
 import { Spinner } from '../atoms/Spinner'
 import { UserNavActions } from '../molecules/UserNavActions'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { SystemAlerts } from '../organisms/SystemAlerts'
+import { IncidentDiagnosticModal } from '../organisms/IncidentDiagnosticModal'
 import { useInstances } from '../../hooks/useInstances'
+import { useIncidents } from '../../hooks/useIncidents'
 import { useLanguage } from '../../contexts/LanguageContext'
-import type { Instance } from '../../types'
+import type { Instance, Incident } from '../../types'
 
 interface AlertCount {
   critical: number
@@ -54,10 +56,55 @@ function countAlerts(instance: Instance): AlertCount {
   return count
 }
 
+function IncidentRow({
+  incident,
+  hostname,
+  onViewDiagnostic,
+}: {
+  incident: Incident
+  hostname: string
+  onViewDiagnostic: (incident: Incident) => void
+}) {
+  const { t } = useLanguage()
+  const severityColor = incident.severity === 'critical' ? 'text-(--color-status-exited)' : 'text-(--color-status-warning)'
+  const bgColor = incident.severity === 'critical' ? 'bg-(--color-status-exited-subtle)' : 'bg-(--color-status-warning-subtle)'
+  const borderColor = incident.severity === 'critical' ? 'border-(--color-status-exited)/30' : 'border-(--color-status-warning)/30'
+
+  return (
+    <div className={`flex items-start gap-4 p-4 rounded-xl border ${borderColor} ${bgColor}`}>
+      <div className={`w-10 h-10 rounded-lg bg-(--color-bg-surface) border border-(--color-border) flex items-center justify-center shrink-0`}>
+        <Zap className={`w-5 h-5 ${severityColor}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-(--color-text-main) font-semibold text-sm truncate">{incident.title}</p>
+          <Badge state={incident.status === 'open' ? 'running' : 'exited'} />
+        </div>
+        <p className="text-xs text-(--color-text-muted) mt-0.5">
+          {t('rootCause')}: <span className={severityColor}>{incident.root_cause_type}</span> · {hostname}
+        </p>
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-xs text-(--color-text-muted)">
+            {new Date(incident.started_at).toLocaleString()}
+          </span>
+          <button
+            onClick={() => onViewDiagnostic(incident)}
+            className="text-xs font-medium text-(--color-primary) hover:text-(--color-primary-hover) transition-colors flex items-center gap-1"
+          >
+            <Activity className="w-3.5 h-3.5" />
+            {t('viewDiagnostic')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AlertsPage() {
   const { t } = useLanguage()
-  const { instances, loading, error } = useInstances()
+  const { instances, loading: instancesLoading, error: instancesError } = useInstances()
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null)
 
   const selectedInstanceData = useMemo(() => {
     return instances.find((i) => i.service_id === selectedInstance) || null
@@ -69,6 +116,29 @@ export default function AlertsPage() {
       alerts: countAlerts(instance),
     }))
   }, [instances])
+
+  // Cargar incidentes: globales si no hay instancia seleccionada, o filtrados por instancia
+  const deviceIdForIncidents = selectedInstanceData?.service_id || undefined
+  const {
+    incidents,
+    loading: incidentsLoading,
+  } = useIncidents({ deviceId: deviceIdForIncidents, status: 'open', limit: 50 })
+
+  const openDiagnostic = (incident: Incident) => {
+    setSelectedIncident(incident)
+  }
+
+  const closeDiagnostic = () => {
+    setSelectedIncident(null)
+  }
+
+  const getHostnameForIncident = (incident: Incident): string => {
+    const inst = instances.find((i) => i.service_id === incident.device_id)
+    return inst?.hostname || incident.device_id
+  }
+
+  const loading = instancesLoading
+  const error = instancesError
 
   if (loading) {
     return (
@@ -127,68 +197,110 @@ export default function AlertsPage() {
               </div>
               <Badge state={selectedInstanceData.status} />
             </div>
+
             <SystemAlerts instances={[selectedInstanceData]} />
+
+            {/* Incidentes de la instancia seleccionada */}
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <Activity className="w-5 h-5 text-(--color-status-exited)" />
+                <h3 className="text-(--color-text-main) font-semibold text-lg">
+                  {t('incidents')} ({incidents.length})
+                </h3>
+              </div>
+              {incidentsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Spinner size="md" />
+                </div>
+              ) : incidents.length === 0 ? (
+                <div className="bg-(--color-bg-surface) border border-(--color-border) rounded-xl p-6 text-center text-(--color-text-muted) text-sm">
+                  {t('noIncidents')}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {incidents.map((incident) => (
+                    <IncidentRow
+                      key={incident.id}
+                      incident={incident}
+                      hostname={selectedInstanceData.hostname}
+                      onViewDiagnostic={openDiagnostic}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {instanceAlertCounts.map(({ instance, alerts }) => {
-              const hasAlerts = alerts.total > 0
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {instanceAlertCounts.map(({ instance, alerts }) => {
+                const hasAlerts = alerts.total > 0
 
-              return (
-                <div
-                  key={instance.service_id}
-                  className="bg-(--color-bg-surface) border border-(--color-border) rounded-xl p-5 hover:border-(--color-border-strong) transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-(--color-primary-subtle) border border-(--color-primary)/30 flex items-center justify-center">
-                        <Server className="w-6 h-6 text-(--color-primary)" />
-                      </div>
-                      <div>
-                        <h3 className="text-(--color-text-main) font-semibold">{instance.hostname}</h3>
-                        <p className="text-(--color-text-muted) text-xs font-mono">{instance.service_id}</p>
-                      </div>
-                    </div>
-                    <Badge state={instance.status} />
-                  </div>
-
-                  <div className="flex items-center gap-4 mb-5">
-                    {hasAlerts ? (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="w-5 h-5 text-(--color-status-exited)" />
-                          <span className="text-2xl font-bold text-(--color-status-exited)">{alerts.critical}</span>
-                          <span className="text-(--color-text-muted) text-xs">{t('critical')}</span>
-                        </div>
-                        {alerts.warning > 0 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-(--color-status-warning)">{alerts.warning}</span>
-                            <span className="text-(--color-text-muted) text-xs">{t('warning')}</span>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-(--color-status-running)" />
-                        <span className="text-(--color-status-running) font-medium text-sm">{t('noAlerts')}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    onClick={() => setSelectedInstance(instance.service_id)}
-                    className="w-full flex items-center justify-center gap-2"
+                return (
+                  <div
+                    key={instance.service_id}
+                    className="bg-(--color-bg-surface) border border-(--color-border) rounded-xl p-5 hover:border-(--color-border-strong) transition-colors"
                   >
-                    <Eye className="w-4 h-4" />
-                    {t('viewDetails')}
-                  </Button>
-                </div>
-              )
-            })}
-          </div>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-(--color-primary-subtle) border border-(--color-primary)/30 flex items-center justify-center">
+                          <Server className="w-6 h-6 text-(--color-primary)" />
+                        </div>
+                        <div>
+                          <h3 className="text-(--color-text-main) font-semibold">{instance.hostname}</h3>
+                          <p className="text-(--color-text-muted) text-xs font-mono">{instance.service_id}</p>
+                        </div>
+                      </div>
+                      <Badge state={instance.status} />
+                    </div>
+
+                    <div className="flex items-center gap-4 mb-5">
+                      {hasAlerts ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-(--color-status-exited)" />
+                            <span className="text-2xl font-bold text-(--color-status-exited)">{alerts.critical}</span>
+                            <span className="text-(--color-text-muted) text-xs">{t('critical')}</span>
+                          </div>
+                          {alerts.warning > 0 && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl font-bold text-(--color-status-warning)">{alerts.warning}</span>
+                              <span className="text-(--color-text-muted) text-xs">{t('warning')}</span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-(--color-status-running)" />
+                          <span className="text-(--color-status-running) font-medium text-sm">{t('noAlerts')}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      variant="primary"
+                      onClick={() => setSelectedInstance(instance.service_id)}
+                      className="w-full flex items-center justify-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      {t('viewDetails')}
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
       </main>
+
+      {/* Modal de Diagnóstico */}
+      {selectedIncident && (
+        <IncidentDiagnosticModal
+          incidentId={selectedIncident.id}
+          deviceHostname={getHostnameForIncident(selectedIncident)}
+          onClose={closeDiagnostic}
+        />
+      )}
     </MainLayout>
   )
 }

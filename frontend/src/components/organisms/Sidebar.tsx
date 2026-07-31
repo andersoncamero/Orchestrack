@@ -5,6 +5,7 @@ import {
   Package,
   Bell,
   Cpu,
+  Network,
 } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -21,6 +22,7 @@ export function Sidebar() {
 
   const menuItems: MenuItem[] = [
     { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard' },
+    { icon: Network, label: t('topology'), path: '/topology' },
     { icon: Server, label: t('instances'), path: '/instances' },
     { icon: Bell, label: t('alerts'), path: '/alerts' },
     { icon: Cpu, label: t('processes'), path: '/processes' },

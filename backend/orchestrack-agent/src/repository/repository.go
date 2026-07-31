@@ -12,6 +12,7 @@ type Repository interface {
 	ListContainers(ctx context.Context, all bool) ([]*docker.ContainerSummary, error)
 	GetContainer(ctx context.Context, id string) (*docker.Container, error)
 	GetContainerLogs(ctx context.Context, id string, tailLines uint32, timestamps, showStdout, showStderr bool) (*docker.GetContainerLogsResponse, error)
+	GetContainerTopology(ctx context.Context) (*docker.GetContainerTopologyResponse, error)
 	CreateContainer(ctx context.Context, req *docker.CreateContainerRequest) (*docker.CreateContainerResponse, error)
 	StartContainer(ctx context.Context, id string) error
 	StopContainer(ctx context.Context, id string, timeout int32) error
@@ -55,6 +56,11 @@ func GetContainer(ctx context.Context, id string) (*docker.Container, error) {
 // GetContainerLogs delega en la implementación inyectada.
 func GetContainerLogs(ctx context.Context, id string, tailLines uint32, timestamps, showStdout, showStderr bool) (*docker.GetContainerLogsResponse, error) {
 	return implementation.GetContainerLogs(ctx, id, tailLines, timestamps, showStdout, showStderr)
+}
+
+// GetContainerTopology delega en la implementación inyectada.
+func GetContainerTopology(ctx context.Context) (*docker.GetContainerTopologyResponse, error) {
+	return implementation.GetContainerTopology(ctx)
 }
 
 // CreateContainer delega en la implementación inyectada.

@@ -170,6 +170,26 @@ message GetContainerLogsResponse {
   repeated string lines = 1;
 }
 
+// ---------- GetContainerTopology ----------
+
+message GetContainerTopologyRequest {
+  // Reservado para filtros futuros.
+  bool all = 1;
+}
+
+message GetContainerTopologyResponse {
+  repeated ContainerNetworkLink links = 1;
+}
+
+message ContainerNetworkLink {
+  string source_container_id = 1;
+  string source_container_name = 2;
+  string target_container_id = 3;
+  string target_container_name = 4;
+  string network = 5;
+  string type = 6; // network_shared, compose_link, port_exposed
+}
+
 // ---------- Modelos ----------
 
 // Resumen de un contenedor para listados.

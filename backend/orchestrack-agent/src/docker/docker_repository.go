@@ -253,6 +253,77 @@ func (r *ContainerRepository) RemoveImage(ctx context.Context, id string, force,
 	return deleted, nil
 }
 
+// GetContainerTopology inspecciona las redes Docker del host y devuelve los enlaces entre contenedores.
+func (r *ContainerRepository) GetContainerTopology(ctx context.Context) (*docker.GetContainerTopologyResponse, error) {
+	networks, err := r.client.NetworkList(ctx, network.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("list networks: %w", err)
+	}
+
+	links := make([]*docker.ContainerNetworkLink, 0)
+	seen := make(map[string]bool)
+
+	for _, net := range networks {
+		// Ignorar redes de sistema que no son de aplicación
+		if net.Name == "host" || net.Name == "none" || net.Name == "bridge" {
+			continue
+		}
+
+		inspect, err := r.client.NetworkInspect(ctx, net.ID, network.InspectOptions{})
+		if err != nil {
+			continue
+		}
+
+		// Obtener los contenedores conectados a esta red
+		containerIDs := make([]string, 0, len(inspect.Containers))
+		names := make(map[string]string)
+		for cid, cinfo := range inspect.Containers {
+			name := cinfo.Name
+			if name == "" {
+				// Fallback: obtener un identificador corto si el nombre está vacío
+				if len(cid) > 12 {
+					name = cid[:12]
+				} else {
+					name = cid
+				}
+			}
+			containerIDs = append(containerIDs, cid)
+			names[cid] = name
+		}
+
+		// Generar enlaces entre todos los pares de contenedores en esta red
+		for i := 0; i < len(containerIDs); i++ {
+			for j := i + 1; j < len(containerIDs); j++ {
+				aID := containerIDs[i]
+				bID := containerIDs[j]
+
+				// Clave única para evitar duplicados (ordenada alfabéticamente por ID)
+				key := aID + "->" + bID + "@" + inspect.Name
+				if seen[key] {
+					continue
+				}
+				seen[key] = true
+
+				depType := "network_shared"
+				if _, ok := inspect.Labels["com.docker.compose.project"]; ok {
+					depType = "compose_link"
+				}
+
+				links = append(links, &docker.ContainerNetworkLink{
+					SourceContainerId:   aID,
+					SourceContainerName: names[aID],
+					TargetContainerId:   bID,
+					TargetContainerName: names[bID],
+					Network:             inspect.Name,
+					Type:                depType,
+				})
+			}
+		}
+	}
+
+	return &docker.GetContainerTopologyResponse{Links: links}, nil
+}
+
 // ---------- Helpers de mapeo ----------
 
 func mapContainerToSummary(c types.Container) *docker.ContainerSummary {

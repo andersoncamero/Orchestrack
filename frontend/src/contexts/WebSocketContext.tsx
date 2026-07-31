@@ -74,6 +74,10 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
           targetRoom = 'dashboard'
         } else if (eventType && eventType.startsWith('container.')) {
           targetRoom = 'containers'
+        } else if (eventType === 'multi_host_propagation_updated' || eventType === 'incident.propagation') {
+          targetRoom = 'dashboard'
+        } else if (eventType === 'server_transaction_degraded') {
+          targetRoom = 'dashboard'
         }
 
         if (targetRoom) {
