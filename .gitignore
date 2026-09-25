@@ -32,3 +32,8 @@ Thumbs.db
 .env.local
 .agents/
 docs/
+skills-lock.json
+**/skills-lock.json
+
+frontend/.claude/
+

@@ -22,8 +22,6 @@ import ForgotPasswordPage from './components/pages/ForgotPasswordPage'
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, isLoading } = useAuth()
 
-
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-bg-base flex items-center justify-center">
@@ -33,7 +31,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!token) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/" replace />
   }
 
   return <>{children}</>

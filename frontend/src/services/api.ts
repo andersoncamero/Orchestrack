@@ -17,6 +17,12 @@ async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   })
 
+  if (response.status === 401) {
+    window.dispatchEvent(new CustomEvent('orchestrack:unauthorized'))
+    const error = await response.json().catch(() => ({ error: 'Unauthorized' }))
+    throw new Error(error.error || 'Unauthorized')
+  }
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Unknown error' }))
     throw new Error(error.error || `HTTP ${response.status}`)
