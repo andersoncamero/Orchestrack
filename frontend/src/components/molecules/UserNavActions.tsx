@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, Settings as SettingsIcon, LogOut } from 'lucide-react'
+import { Bell, Settings as SettingsIcon, LogOut, Sun, Moon } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useNotifications } from '../../contexts/NotificationContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import NotificationDropdown from './NotificationDropdown'
 
 export function UserNavActions() {
   const { t } = useLanguage()
+  const { theme, toggleTheme } = useTheme()
   const { unreadCount } = useNotifications()
   const { logout, user } = useAuth()
   const navigate = useNavigate()
@@ -29,6 +31,15 @@ export function UserNavActions() {
 
   return (
     <div className="flex items-center gap-5">
+      {/* Botón de Tema */}
+      <button
+        onClick={toggleTheme}
+        className="p-2 text-(--color-text-muted) hover:text-(--color-text-main) transition-colors rounded-xl hover:bg-(--color-bg-surface-hover) cursor-pointer"
+        title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      </button>
+
       {/* Botón de Notificaciones con Badge Rojo */}
       <div className="relative">
         <button

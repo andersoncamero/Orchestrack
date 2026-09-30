@@ -48,7 +48,7 @@ export default function LandingPage() {
             </Link>
             <a
               href="#features"
-              className="bg-bg-subtle hover:bg-bg-modifier-hover text-text-base border border-border-base px-8 py-3 rounded-xl text-lg font-medium transition-colors flex items-center justify-center"
+              className="bg-bg-surface hover:bg-bg-modifier-hover text-text-base border border-border-base px-8 py-3 rounded-xl text-lg font-medium transition-colors flex items-center justify-center"
             >
               {t('landingLearnMore')}
             </a>
@@ -57,11 +57,11 @@ export default function LandingPage() {
       </main>
 
       {/* About & Objective Section */}
-      <section id="about" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24">
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {/* What is Orchestrack */}
           <ScrollReveal>
-            <div className="bg-bg-subtle border border-border-base rounded-3xl p-8 md:p-12 shadow-sm flex flex-col justify-center h-full">
+            <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-12 flex flex-col justify-center h-full">
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-4 text-text-base">
                 {t('landingAboutTitle')}
               </h2>
@@ -73,7 +73,7 @@ export default function LandingPage() {
           
           {/* Our Objective */}
           <ScrollReveal delay={200}>
-            <div className="bg-bg-subtle border border-border-base rounded-3xl p-8 md:p-12 shadow-sm relative overflow-hidden flex flex-col justify-center h-full">
+            <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-12 relative overflow-hidden flex flex-col justify-center h-full">
               {/* Subtle glow effect for premium feel */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
               
@@ -89,7 +89,7 @@ export default function LandingPage() {
       </section>
 
       {/* Differentiators & Pillars Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 border-t border-border-base">
+      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <ScrollReveal>
           <div className="text-center mb-16 max-w-4xl mx-auto">
             <p className="text-xl md:text-2xl text-text-muted leading-relaxed">
@@ -101,7 +101,7 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 gap-8">
           {/* Pillar 1 */}
           <ScrollReveal delay={100}>
-            <div className="bg-bg-subtle border border-border-base rounded-3xl p-8 shadow-sm flex flex-col items-center text-center hover:border-primary/50 hover:shadow-lg hover:-translate-y-1 transition-all h-full">
+            <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 flex flex-col items-center text-center hover:shadow-primary/20 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:-translate-y-1 transition-all h-full">
               <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mb-6">
                 <Network className="w-8 h-8" />
               </div>
@@ -112,7 +112,7 @@ export default function LandingPage() {
 
           {/* Pillar 2 */}
           <ScrollReveal delay={200}>
-            <div className="bg-bg-subtle border border-border-base rounded-3xl p-8 shadow-sm flex flex-col items-center text-center hover:border-purple-500/50 hover:shadow-lg hover:-translate-y-1 transition-all h-full">
+            <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 flex flex-col items-center text-center hover:shadow-purple-500/20 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:-translate-y-1 transition-all h-full">
               <div className="w-16 h-16 bg-purple-500/10 text-purple-500 rounded-2xl flex items-center justify-center mb-6">
                 <BrainCircuit className="w-8 h-8" />
               </div>
@@ -123,7 +123,7 @@ export default function LandingPage() {
 
           {/* Pillar 3 */}
           <ScrollReveal delay={300}>
-            <div className="bg-bg-subtle border border-border-base rounded-3xl p-8 shadow-sm flex flex-col items-center text-center hover:border-green-500/50 hover:shadow-lg hover:-translate-y-1 transition-all h-full">
+            <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 flex flex-col items-center text-center hover:shadow-green-500/20 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:-translate-y-1 transition-all h-full">
               <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-2xl flex items-center justify-center mb-6">
                 <TerminalSquare className="w-8 h-8" />
               </div>
@@ -135,7 +135,7 @@ export default function LandingPage() {
       </section>
 
       {/* SDLC Animated Section */}
-      <section id="sdlc" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 border-t border-border-base">
+      <section id="sdlc" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <ScrollReveal>
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-text-base">
@@ -155,7 +155,7 @@ export default function LandingPage() {
             <ScrollReveal delay={100} className="relative group h-[340px] [perspective:1000px]">
               <div className="relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
                 {/* Front */}
-                <div className="absolute inset-0 bg-bg-base border border-border-base rounded-2xl p-6 shadow-sm flex flex-col justify-start pt-10 [backface-visibility:hidden]">
+                <div className="absolute inset-0 bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-2xl p-6 flex flex-col justify-start pt-10 [backface-visibility:hidden]">
                   <div className="w-14 h-14 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6 mx-auto lg:mx-0">
                     <Code2 className="w-7 h-7" />
                   </div>
@@ -163,10 +163,12 @@ export default function LandingPage() {
                   <p className="text-text-muted text-center lg:text-left">{t('landingSdlcStep1Desc')}</p>
                 </div>
                 {/* Back */}
-                <div className="absolute inset-0 bg-primary/5 border border-primary/30 rounded-2xl p-6 shadow-xl flex items-center justify-center text-center [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <p className="text-[15px] text-text-base leading-relaxed font-medium">
-                    {t('landingSdlcStep1Back')}
-                  </p>
+                <div className="absolute inset-0 bg-bg-base rounded-2xl [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <div className="absolute inset-0 bg-primary/5 border border-primary/30 rounded-2xl p-6 shadow-xl flex items-center justify-center text-center">
+                    <p className="text-[15px] text-text-base leading-relaxed font-medium">
+                      {t('landingSdlcStep1Back')}
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 text-border-base z-20">
@@ -178,7 +180,7 @@ export default function LandingPage() {
             <ScrollReveal delay={200} className="relative group h-[340px] [perspective:1000px]">
               <div className="relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
                 {/* Front */}
-                <div className="absolute inset-0 bg-bg-base border border-border-base rounded-2xl p-6 shadow-sm flex flex-col justify-start pt-10 [backface-visibility:hidden]">
+                <div className="absolute inset-0 bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-2xl p-6 flex flex-col justify-start pt-10 [backface-visibility:hidden]">
                   <div className="w-14 h-14 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center mb-6 mx-auto lg:mx-0">
                     <Rocket className="w-7 h-7" />
                   </div>
@@ -186,10 +188,12 @@ export default function LandingPage() {
                   <p className="text-text-muted text-center lg:text-left">{t('landingSdlcStep2Desc')}</p>
                 </div>
                 {/* Back */}
-                <div className="absolute inset-0 bg-purple-500/5 border border-purple-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-center text-center [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <p className="text-[15px] text-text-base leading-relaxed font-medium">
-                    {t('landingSdlcStep2Back')}
-                  </p>
+                <div className="absolute inset-0 bg-bg-base rounded-2xl [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <div className="absolute inset-0 bg-purple-500/5 border border-purple-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-center text-center">
+                    <p className="text-[15px] text-text-base leading-relaxed font-medium">
+                      {t('landingSdlcStep2Back')}
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 text-border-base z-20">
@@ -201,7 +205,7 @@ export default function LandingPage() {
             <ScrollReveal delay={300} className="relative group h-[340px] [perspective:1000px]">
               <div className="relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
                 {/* Front */}
-                <div className="absolute inset-0 bg-bg-base border border-border-base rounded-2xl p-6 shadow-sm flex flex-col justify-start pt-10 [backface-visibility:hidden]">
+                <div className="absolute inset-0 bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-2xl p-6 flex flex-col justify-start pt-10 [backface-visibility:hidden]">
                   <div className="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center mb-6 mx-auto lg:mx-0">
                     <Activity className="w-7 h-7" />
                   </div>
@@ -209,10 +213,12 @@ export default function LandingPage() {
                   <p className="text-text-muted text-center lg:text-left">{t('landingSdlcStep3Desc')}</p>
                 </div>
                 {/* Back */}
-                <div className="absolute inset-0 bg-blue-500/5 border border-blue-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-center text-center [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <p className="text-[15px] text-text-base leading-relaxed font-medium">
-                    {t('landingSdlcStep3Back')}
-                  </p>
+                <div className="absolute inset-0 bg-bg-base rounded-2xl [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <div className="absolute inset-0 bg-blue-500/5 border border-blue-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-center text-center">
+                    <p className="text-[15px] text-text-base leading-relaxed font-medium">
+                      {t('landingSdlcStep3Back')}
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 text-border-base z-20">
@@ -224,7 +230,7 @@ export default function LandingPage() {
             <ScrollReveal delay={400} className="relative group h-[340px] [perspective:1000px]">
               <div className="relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
                 {/* Front */}
-                <div className="absolute inset-0 bg-bg-base border border-border-base rounded-2xl p-6 shadow-sm flex flex-col justify-start pt-10 [backface-visibility:hidden]">
+                <div className="absolute inset-0 bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-2xl p-6 flex flex-col justify-start pt-10 [backface-visibility:hidden]">
                   <div className="w-14 h-14 bg-green-500/10 text-green-500 rounded-xl flex items-center justify-center mb-6 mx-auto lg:mx-0">
                     <RefreshCw className="w-7 h-7" />
                   </div>
@@ -232,10 +238,12 @@ export default function LandingPage() {
                   <p className="text-text-muted text-center lg:text-left">{t('landingSdlcStep4Desc')}</p>
                 </div>
                 {/* Back */}
-                <div className="absolute inset-0 bg-green-500/5 border border-green-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-center text-center [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <p className="text-[15px] text-text-base leading-relaxed font-medium">
-                    {t('landingSdlcStep4Back')}
-                  </p>
+                <div className="absolute inset-0 bg-bg-base rounded-2xl [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <div className="absolute inset-0 bg-green-500/5 border border-green-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-center text-center">
+                    <p className="text-[15px] text-text-base leading-relaxed font-medium">
+                      {t('landingSdlcStep4Back')}
+                    </p>
+                  </div>
                 </div>
               </div>
             </ScrollReveal>
@@ -244,7 +252,7 @@ export default function LandingPage() {
       </section>
 
       {/* Solutions Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 border-t border-border-base relative overflow-hidden">
+      <section id="solutions" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative overflow-hidden">
         {/* Background Decorative elements */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
         
@@ -262,7 +270,7 @@ export default function LandingPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Solution 1 */}
           <ScrollReveal delay={100}>
-            <div className="group relative bg-bg-base border border-border-base rounded-3xl p-8 hover:border-blue-500/50 transition-colors z-10 overflow-hidden h-full">
+            <div className="group relative bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 hover:shadow-blue-500/20 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:-translate-y-2 transition-all z-10 overflow-hidden h-full">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
               <div className="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Cloud className="w-7 h-7" />
@@ -276,7 +284,7 @@ export default function LandingPage() {
 
           {/* Solution 2 */}
           <ScrollReveal delay={200}>
-            <div className="group relative bg-bg-base border border-border-base rounded-3xl p-8 hover:border-yellow-500/50 transition-colors z-10 overflow-hidden lg:-translate-y-4 shadow-xl shadow-bg-subtle/50 h-full">
+            <div className="group relative bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 hover:shadow-yellow-500/20 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:-translate-y-6 transition-all z-10 overflow-hidden lg:-translate-y-4 h-full">
               <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
               <div className="w-14 h-14 bg-yellow-500/10 text-yellow-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Zap className="w-7 h-7" />
@@ -290,7 +298,7 @@ export default function LandingPage() {
 
           {/* Solution 3 */}
           <ScrollReveal delay={300}>
-            <div className="group relative bg-bg-base border border-border-base rounded-3xl p-8 hover:border-emerald-500/50 transition-colors z-10 overflow-hidden h-full">
+            <div className="group relative bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 hover:shadow-emerald-500/20 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:-translate-y-2 transition-all z-10 overflow-hidden h-full">
               <div className="absolute inset-0 bg-gradient-to-bl from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
               <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <ShieldCheck className="w-7 h-7" />
@@ -305,7 +313,7 @@ export default function LandingPage() {
       </section>
 
       {/* Core Features Depth Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 border-t border-border-base">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="space-y-32">
           
           {/* Feature 1 */}
@@ -321,7 +329,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="flex-1 w-full">
-                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-subtle border border-border-base rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:border-blue-500/50 transition-colors shadow-sm">
+                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:shadow-blue-500/20 transition-all">
                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent"></div>
                    <Eye className="w-32 h-32 text-blue-500/20 group-hover:text-blue-500/40 group-hover:scale-110 transition-all duration-700" />
                  </div>
@@ -342,7 +350,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="flex-1 w-full">
-                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-subtle border border-border-base rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:border-rose-500/50 transition-colors shadow-sm">
+                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:shadow-rose-500/20 transition-all">
                    <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/5 to-transparent"></div>
                    <Target className="w-32 h-32 text-rose-500/20 group-hover:text-rose-500/40 group-hover:scale-110 transition-all duration-700" />
                  </div>
@@ -363,7 +371,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="flex-1 w-full">
-                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-subtle border border-border-base rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:border-purple-500/50 transition-colors shadow-sm">
+                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:shadow-purple-500/20 transition-all">
                    <div className="absolute inset-0 bg-gradient-to-bl from-purple-500/5 to-transparent"></div>
                    <Share2 className="w-32 h-32 text-purple-500/20 group-hover:text-purple-500/40 group-hover:scale-110 transition-all duration-700" />
                  </div>
@@ -384,7 +392,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="flex-1 w-full">
-                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-subtle border border-border-base rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:border-orange-500/50 transition-colors shadow-sm">
+                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:shadow-orange-500/20 transition-all">
                    <div className="absolute inset-0 bg-gradient-to-tl from-orange-500/5 to-transparent"></div>
                    <ServerCrash className="w-32 h-32 text-orange-500/20 group-hover:text-orange-500/40 group-hover:scale-110 transition-all duration-700" />
                  </div>
@@ -405,7 +413,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="flex-1 w-full">
-                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-subtle border border-border-base rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:border-emerald-500/50 transition-colors shadow-sm">
+                 <div className="w-full aspect-[4/3] md:aspect-video bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl overflow-hidden relative flex items-center justify-center group-hover:shadow-emerald-500/20 transition-all">
                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent"></div>
                    <Archive className="w-32 h-32 text-emerald-500/20 group-hover:text-emerald-500/40 group-hover:scale-110 transition-all duration-700" />
                  </div>
@@ -417,7 +425,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 border-t border-border-base relative">
+      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative">
         <ScrollReveal>
           <div className="text-center mb-16">
             <h2 className="text-sm font-bold text-primary tracking-widest uppercase mb-3">
@@ -426,7 +434,7 @@ export default function LandingPage() {
             <h3 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-base mb-6">
               {t('landingPricingSectionSubtitle')}
             </h3>
-            <p className="text-lg text-text-muted max-w-3xl mx-auto leading-relaxed bg-bg-subtle p-6 rounded-2xl border border-border-base">
+            <p className="text-lg text-text-muted max-w-3xl mx-auto leading-relaxed bg-bg-surface p-6 rounded-2xl border border-border-base">
               {t('landingPricingPhilosophy')}
             </p>
           </div>
@@ -436,7 +444,7 @@ export default function LandingPage() {
           
           {/* Developer Tier */}
           <ScrollReveal delay={100}>
-            <div className="bg-bg-subtle border border-border-base rounded-3xl p-8 shadow-sm flex flex-col h-full">
+            <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 flex flex-col h-full">
               <div className="mb-8">
                 <h4 className="text-xl font-bold text-text-base mb-2">{t('landingPricingDevTier')}</h4>
                 <div className="flex items-baseline gap-1">
@@ -494,7 +502,7 @@ export default function LandingPage() {
 
           {/* Enterprise Tier */}
           <ScrollReveal delay={300}>
-            <div className="bg-bg-subtle border border-border-base rounded-3xl p-8 shadow-sm flex flex-col h-full">
+            <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-3xl p-8 flex flex-col h-full">
               <div className="mb-8">
                 <h4 className="text-xl font-bold text-text-base mb-2">{t('landingPricingEntTier')}</h4>
                 <div className="flex items-baseline gap-1">
@@ -522,7 +530,7 @@ export default function LandingPage() {
       </section>
 
       {/* About & Architecture Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 border-t border-border-base">
+      <section id="about" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <ScrollReveal>
           <div className="text-center mb-16 max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-base mb-6">
@@ -543,7 +551,7 @@ export default function LandingPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Agent */}
             <ScrollReveal delay={100}>
-              <div className="bg-bg-subtle border border-border-base rounded-2xl p-6 shadow-sm hover:border-primary/50 transition-colors group h-full">
+              <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-2xl p-6 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:shadow-primary/20 hover:-translate-y-1 transition-all group h-full">
                 <Cpu className="w-10 h-10 text-primary mb-4 group-hover:scale-110 transition-transform" />
                 <h4 className="text-lg font-bold text-text-base mb-2">{t('landingAboutArch1Title')}</h4>
                 <p className="text-sm text-text-muted leading-relaxed">{t('landingAboutArch1Desc')}</p>
@@ -551,7 +559,7 @@ export default function LandingPage() {
             </ScrollReveal>
             {/* NATS */}
             <ScrollReveal delay={200}>
-              <div className="bg-bg-subtle border border-border-base rounded-2xl p-6 shadow-sm hover:border-purple-500/50 transition-colors group h-full">
+              <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-2xl p-6 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:shadow-purple-500/20 hover:-translate-y-1 transition-all group h-full">
                 <Radio className="w-10 h-10 text-purple-500 mb-4 group-hover:scale-110 transition-transform" />
                 <h4 className="text-lg font-bold text-text-base mb-2">{t('landingAboutArch2Title')}</h4>
                 <p className="text-sm text-text-muted leading-relaxed">{t('landingAboutArch2Desc')}</p>
@@ -559,7 +567,7 @@ export default function LandingPage() {
             </ScrollReveal>
             {/* API */}
             <ScrollReveal delay={300}>
-              <div className="bg-bg-subtle border border-border-base rounded-2xl p-6 shadow-sm hover:border-blue-500/50 transition-colors group h-full">
+              <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-2xl p-6 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:shadow-blue-500/20 hover:-translate-y-1 transition-all group h-full">
                 <Database className="w-10 h-10 text-blue-500 mb-4 group-hover:scale-110 transition-transform" />
                 <h4 className="text-lg font-bold text-text-base mb-2">{t('landingAboutArch3Title')}</h4>
                 <p className="text-sm text-text-muted leading-relaxed">{t('landingAboutArch3Desc')}</p>
@@ -567,7 +575,7 @@ export default function LandingPage() {
             </ScrollReveal>
             {/* Dashboard */}
             <ScrollReveal delay={400}>
-              <div className="bg-bg-subtle border border-border-base rounded-2xl p-6 shadow-sm hover:border-emerald-500/50 transition-colors group h-full">
+              <div className="bg-bg-surface shadow-[0_0_20px_rgba(0,0,0,0.08)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] rounded-2xl p-6 hover:shadow-[0_0_35px_var(--tw-shadow-color)] hover:shadow-emerald-500/20 hover:-translate-y-1 transition-all group h-full">
                 <LayoutDashboard className="w-10 h-10 text-emerald-500 mb-4 group-hover:scale-110 transition-transform" />
                 <h4 className="text-lg font-bold text-text-base mb-2">{t('landingAboutArch4Title')}</h4>
                 <p className="text-sm text-text-muted leading-relaxed">{t('landingAboutArch4Desc')}</p>
@@ -613,7 +621,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-bg-subtle border-t border-border-base pt-16 pb-8">
+      <footer className="bg-bg-surface border-t border-border-base pt-16 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
