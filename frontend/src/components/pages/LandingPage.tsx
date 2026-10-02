@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Code2, Rocket, Activity, RefreshCw, ArrowRight, Network, BrainCircuit, TerminalSquare, Eye, Target, Share2, ServerCrash, Archive, Cloud, Zap, ShieldCheck, Check, Cpu, Radio, Database, LayoutDashboard } from 'lucide-react'
+import { Code2, Rocket, Activity, RefreshCw, Network, BrainCircuit, TerminalSquare, Eye, Target, Share2, ServerCrash, Archive, Cloud, Zap, ShieldCheck, Check, Cpu, Radio, Database, LayoutDashboard } from 'lucide-react'
 import { AppBar } from '../organisms/AppBar'
 import { ScrollReveal } from '../atoms/ScrollReveal'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -24,7 +24,7 @@ export default function LandingPage() {
       <AppBar />
 
       {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-4 flex flex-col items-center text-center">
+      <main id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-36 md:pt-44 lg:pt-48 pb-12 flex flex-col items-center text-center scroll-mt-28">
         <ScrollReveal>
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
             {t('landingHeroTitle1')} <br className="hidden md:block" />
@@ -89,7 +89,7 @@ export default function LandingPage() {
       </section>
 
       {/* Differentiators & Pillars Section */}
-      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 scroll-mt-28">
         <ScrollReveal>
           <div className="text-center mb-16 max-w-4xl mx-auto">
             <p className="text-xl md:text-2xl text-text-muted leading-relaxed">
@@ -145,10 +145,7 @@ export default function LandingPage() {
         </ScrollReveal>
 
         <div className="relative">
-          {/* Connecting animated line background (Desktop) */}
-          <div className="hidden lg:block absolute top-1/2 left-0 w-full h-1 bg-border-base -translate-y-1/2 rounded-full overflow-hidden">
-            <div className="w-full h-full bg-gradient-to-r from-primary via-purple-500 to-primary animate-[pulse_3s_ease-in-out_infinite] opacity-50"></div>
-          </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
             {/* Step 1 */}
@@ -170,9 +167,6 @@ export default function LandingPage() {
                     </p>
                   </div>
                 </div>
-              </div>
-              <div className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 text-border-base z-20">
-                <ArrowRight className="w-6 h-6" />
               </div>
             </ScrollReveal>
 
@@ -196,9 +190,6 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 text-border-base z-20">
-                <ArrowRight className="w-6 h-6" />
-              </div>
             </ScrollReveal>
 
             {/* Step 3 */}
@@ -220,9 +211,6 @@ export default function LandingPage() {
                     </p>
                   </div>
                 </div>
-              </div>
-              <div className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 text-border-base z-20">
-                <ArrowRight className="w-6 h-6" />
               </div>
             </ScrollReveal>
 
@@ -252,7 +240,7 @@ export default function LandingPage() {
       </section>
 
       {/* Solutions Section */}
-      <section id="solutions" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative overflow-hidden">
+      <section id="solutions" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative overflow-hidden scroll-mt-28">
         {/* Background Decorative elements */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
         
@@ -425,7 +413,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative">
+      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative scroll-mt-28">
         <ScrollReveal>
           <div className="text-center mb-16">
             <h2 className="text-sm font-bold text-primary tracking-widest uppercase mb-3">
@@ -530,7 +518,7 @@ export default function LandingPage() {
       </section>
 
       {/* About & Architecture Section */}
-      <section id="about" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <section id="about" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 scroll-mt-28">
         <ScrollReveal>
           <div className="text-center mb-16 max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-base mb-6">

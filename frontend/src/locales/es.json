@@ -403,6 +403,7 @@
   "waitingForEvidence": "Esperando recolección de evidencias...",
   "evidenceAvailable": "Evidencia forense disponible para análisis.",
   "noEvidenceAvailable": "No hay evidencias disponibles para este incidente.",
+  "landingHome": "Inicio",
   "landingFeatures": "Características",
   "landingSolutions": "Soluciones",
   "landingPricing": "Precios",

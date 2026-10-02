@@ -403,6 +403,7 @@
   "waitingForEvidence": "Waiting for evidence collection...",
   "evidenceAvailable": "Forensic evidence available for analysis.",
   "noEvidenceAvailable": "No evidence available for this incident.",
+  "landingHome": "Home",
   "landingFeatures": "Features",
   "landingSolutions": "Solutions",
   "landingPricing": "Pricing",
